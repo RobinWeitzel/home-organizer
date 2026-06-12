@@ -2,26 +2,34 @@ import type { Rect } from './types';
 
 /**
  * Grid-cell geometry for rectilinear room shapes.
- * A shape is a set of GRID-sized cells keyed "x,y" in grid units; the public
- * API speaks metres throughout. The canonical stored form is the clockwise
- * (screen coords, y down) outline polygon produced by traceOutline, also in
- * metres. GRID is a negative power of two, so every snapped coordinate and
- * the metres↔grid conversions are exact in floating point.
+ * A shape is a set of GRID-sized cells keyed by packed integer grid
+ * coordinates; the public API speaks metres throughout. The canonical stored
+ * form is the clockwise (screen coords, y down) outline polygon produced by
+ * traceOutline, also in metres. GRID is not exactly representable in binary,
+ * so every coordinate leaving this module is canonicalised with roundCoord —
+ * two coordinates that mean the same place are then bit-identical, keeping
+ * the exact-equality checks elsewhere (wall reattachment, mesh dedup) sound.
  */
-export type CellSet = Set<string>;
+export type CellSet = Set<number>;
 
 /** room-drawing resolution in metres */
-export const GRID = 0.25;
+export const GRID = 0.05;
+
+/** canonical double for a grid-aligned metre coordinate (2 decimals) */
+export const roundCoord = (v: number): number => Math.round(v * 100) / 100;
 
 export interface Pt {
   x: number;
   y: number;
 }
 
-const key = (x: number, y: number) => `${x},${y}`;
-const parse = (k: string): Pt => {
-  const [x, y] = k.split(',').map(Number);
-  return { x, y };
+// packed integer keys: ±32768 grid units (±1.6 km at 5 cm) per axis
+const OFFSET = 32768;
+const SPAN = 65536;
+const key = (x: number, y: number) => (x + OFFSET) * SPAN + (y + OFFSET);
+const parse = (k: number): Pt => {
+  const y = (k % SPAN) - OFFSET;
+  return { x: (k - (k % SPAN)) / SPAN - OFFSET, y };
 };
 
 const EPS = 1e-9;
@@ -59,8 +67,8 @@ const NEIGHBOURS = [
 
 export function isConnected(cells: CellSet): boolean {
   if (cells.size === 0) return false;
-  const seen = new Set<string>();
-  const stack = [cells.values().next().value as string];
+  const seen = new Set<number>();
+  const stack = [cells.values().next().value as number];
   seen.add(stack[0]);
   while (stack.length) {
     const { x, y } = parse(stack.pop()!);
@@ -104,7 +112,7 @@ export function hasHole(cells: CellSet): boolean {
     x1 = b.x + b.w,
     y1 = b.y + b.h;
   // flood the complement from outside the shape
-  const seen = new Set<string>([key(x0, y0)]);
+  const seen = new Set<number>([key(x0, y0)]);
   const stack = [key(x0, y0)];
   while (stack.length) {
     const { x, y } = parse(stack.pop()!);
@@ -129,7 +137,7 @@ export function hasHole(cells: CellSet): boolean {
  */
 export function traceOutline(cells: CellSet): Pt[] {
   // directed boundary edges start->end keyed by start vertex
-  const edges = new Map<string, Pt[]>();
+  const edges = new Map<number, Pt[]>();
   const addEdge = (sx: number, sy: number, ex: number, ey: number) => {
     const k = key(sx, sy);
     const list = edges.get(k) ?? [];
@@ -185,7 +193,7 @@ export function traceOutline(cells: CellSet): Pt[] {
     const collinear = (prev.x === p.x && p.x === next.x) || (prev.y === p.y && p.y === next.y);
     if (!collinear) merged.push(p);
   }
-  return merged.map((p) => ({ x: p.x * GRID, y: p.y * GRID }));
+  return merged.map((p) => ({ x: roundCoord(p.x * GRID), y: roundCoord(p.y * GRID) }));
 }
 
 /** Scanline fill of a rectilinear polygon (metres) back into cells (inverse of traceOutline). */

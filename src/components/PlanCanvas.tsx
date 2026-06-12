@@ -85,7 +85,7 @@ function RoomDimensions({ room, scale }: { room: Room; scale: number }) {
         return (
           <g key={i}>
             <text className="dim-label" x={label.x} y={label.y + 0.12} textAnchor="middle">
-              {e.len} m
+              {Math.round(e.len * 100) / 100} m
             </text>
             <rect
               className="edge-handle"

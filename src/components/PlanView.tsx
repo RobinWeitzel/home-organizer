@@ -184,8 +184,8 @@ export default function PlanView() {
     const cx = f.x + f.w / 2;
     const cy = f.y + f.h / 2;
     const rotated = {
-      x: Math.round((cx - f.h / 2) * 2) / 2,
-      y: Math.round((cy - f.w / 2) * 2) / 2,
+      x: Math.round((cx - f.h / 2) * 20) / 20,
+      y: Math.round((cy - f.w / 2) * 20) / 20,
       w: f.h,
       h: f.w,
     };

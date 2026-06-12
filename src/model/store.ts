@@ -6,6 +6,7 @@ import {
   polygonCells,
   polygonEdges,
   rectCells,
+  roundCoord,
   subtract,
   traceOutline,
   union,
@@ -453,7 +454,9 @@ export const useApp = create<AppState>()((set, get) => {
       const d = get().data;
       const room = d.rooms.find((r) => r.id === id);
       if (!room || (dx === 0 && dy === 0)) return false;
-      const polygon = room.polygon.map((p) => ({ x: p.x + dx, y: p.y + dy }));
+      // roundCoord keeps stored coordinates canonical — sums of snapped
+      // values drift by ~1e-16 otherwise, breaking exact-equality checks
+      const polygon = room.polygon.map((p) => ({ x: roundCoord(p.x + dx), y: roundCoord(p.y + dy) }));
       const cells = polygonCells(polygon);
       const others = neighbourCells(d, room.floorId, id);
       for (const c of cells) if (others.has(c)) return false;
@@ -461,7 +464,9 @@ export const useApp = create<AppState>()((set, get) => {
         (data) => ({
           ...data,
           rooms: data.rooms.map((r) => (r.id === id ? { ...r, polygon } : r)),
-          furniture: data.furniture.map((f) => (f.roomId === id ? { ...f, x: f.x + dx, y: f.y + dy } : f)),
+          furniture: data.furniture.map((f) =>
+            f.roomId === id ? { ...f, x: roundCoord(f.x + dx), y: roundCoord(f.y + dy) } : f,
+          ),
         }),
         `moveRoom:${id}`,
       );

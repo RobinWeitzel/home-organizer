@@ -51,12 +51,12 @@ describe('addRoomRect', () => {
     expect(s().data.rooms[1].polygon).toEqual(rectPolygon(4, 0, 2, 4));
   });
 
-  it('keeps quarter-metre precision', () => {
+  it('keeps fine-grid precision', () => {
     s().addFloor('G');
     s().addRoomRect(s().currentFloorId!, { x: 0.25, y: 0.5, w: 3.25, h: 2.75 });
     expect(s().data.rooms[0].polygon).toEqual(rectPolygon(0.25, 0.5, 3.25, 2.75));
     const room = s().data.rooms[0];
-    // a 0.25 m notch is a legal carve now
+    // a 0.25 m notch is a legal carve
     expect(s().applyRoomShape(room.id, 'carve', { x: 0.25, y: 0.5, w: 0.25, h: 0.25 })).toBe(true);
     expect(s().data.rooms[0].polygon).toHaveLength(6);
   });
@@ -183,6 +183,18 @@ describe('moveRoom', () => {
     expect(s().data.rooms[0].polygon[0]).toEqual({ x: 2, y: 1 });
     const f = s().data.furniture.find((x) => x.id === furniture.id)!;
     expect({ x: f.x, y: f.y }).toEqual({ x: 3, y: 2 });
+  });
+
+  it('keeps wall items through a 5cm-grid move followed by a reshape', () => {
+    // 0.05 is not exactly representable in binary — without canonical
+    // rounding the moved wall line would not compare equal to the retraced
+    // one and the door would be dropped
+    const { room } = buildHouse(); // door on the bottom edge
+    expect(s().moveRoom(room.id, 1.15, 0.85)).toBe(true);
+    expect(s().data.wallItems).toHaveLength(1);
+    // extend to the right: the bottom wall grows along the same line
+    expect(s().applyRoomShape(room.id, 'extend', { x: 7.15, y: 0.85, w: 0.55, h: 4 })).toBe(true);
+    expect(s().data.wallItems).toHaveLength(1);
   });
 
   it('refuses to move into another room', () => {
@@ -322,8 +334,8 @@ describe('furniture, areas, items (unchanged behaviour)', () => {
 
   it('roomCells exposes the cell set for hit tests', () => {
     const { room } = buildHouse();
-    // 6x4 m room at 16 quarter-metre cells per m²
-    expect(s().roomCells(room.id).size).toBe(24 * 16);
+    // 6x4 m room at 400 five-centimetre cells per m²
+    expect(s().roomCells(room.id).size).toBe(24 * 400);
   });
 });
 
