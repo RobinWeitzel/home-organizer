@@ -126,7 +126,10 @@ interface AppState {
   roomCells: (id: string) => CellSet;
 
   addWallItem: (roomId: string, type: WallItem['type'], edge: number, offset: number, length: number) => void;
-  updateWallItem: (id: string, patch: Partial<Pick<WallItem, 'offset' | 'length'>>) => void;
+  updateWallItem: (
+    id: string,
+    patch: Partial<Pick<WallItem, 'offset' | 'length' | 'hingeAtEnd' | 'swingOutward'>>,
+  ) => void;
   deleteWallItem: (id: string) => void;
 
   addFurniture: (roomId: string, kind: FurnitureKind, rect: Rect) => void;
@@ -509,7 +512,7 @@ export const useApp = create<AppState>()((set, get) => {
         const offset = clampWallOffset(e.len, patch.offset ?? item.offset, length);
         return {
           ...d,
-          wallItems: d.wallItems.map((w) => (w.id === id ? { ...w, offset, length } : w)),
+          wallItems: d.wallItems.map((w) => (w.id === id ? { ...w, ...patch, offset, length } : w)),
         };
       }, `wall:${id}`),
     deleteWallItem: (id) => {

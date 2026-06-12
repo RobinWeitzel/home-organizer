@@ -124,7 +124,9 @@ export function buildScene3D(
       const gap = mergeCollinearGaps({ from: seg.from, to: seg.to }, doorGaps);
       doors.push({
         id: item.id, gapFrom: gap.from, gapTo: gap.to,
-        hinge: seg.from, inward: seg.inward, length: item.length,
+        hinge: item.hingeAtEnd ? seg.to : seg.from,
+        inward: item.swingOutward ? { x: -seg.inward.x || 0, y: -seg.inward.y || 0 } : seg.inward,
+        length: item.length,
         height: Math.min(WALL_H, DOOR_H),
         selected: opts.selectedWallItemId === item.id,
       });

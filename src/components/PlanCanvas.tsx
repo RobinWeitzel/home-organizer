@@ -54,17 +54,22 @@ function WallItemShape({ w, room, selected }: { w: WallItem; room: Room; selecte
       </g>
     );
   }
-  const leafEnd = { x: from.x + inward.x * w.length, y: from.y + inward.y * w.length };
-  const along = { x: to.x - from.x, y: to.y - from.y };
-  const sweep = along.x * inward.y - along.y * inward.x > 0 ? 1 : 0;
+  // the leaf hangs on the hinge jamb and swings to the latch side; both are
+  // flippable per door
+  const hinge = w.hingeAtEnd ? to : from;
+  const latch = w.hingeAtEnd ? from : to;
+  const swing = w.swingOutward ? { x: -inward.x || 0, y: -inward.y || 0 } : inward;
+  const leafEnd = { x: hinge.x + swing.x * w.length, y: hinge.y + swing.y * w.length };
+  const along = { x: latch.x - hinge.x, y: latch.y - hinge.y };
+  const sweep = along.x * swing.y - along.y * swing.x > 0 ? 1 : 0;
   const leafClass = selected ? 'door-leaf door-leaf-selected' : 'door-leaf';
   return (
     <g>
       <line className="wall-gap" x1={from.x} y1={from.y} x2={to.x} y2={to.y} strokeWidth={WALL_W * 1.4} />
-      <line className={leafClass} x1={from.x} y1={from.y} x2={leafEnd.x} y2={leafEnd.y} strokeWidth={0.06} />
+      <line className={leafClass} x1={hinge.x} y1={hinge.y} x2={leafEnd.x} y2={leafEnd.y} strokeWidth={0.06} />
       <path
         className={leafClass}
-        d={`M ${to.x} ${to.y} A ${w.length} ${w.length} 0 0 ${sweep} ${leafEnd.x} ${leafEnd.y}`}
+        d={`M ${latch.x} ${latch.y} A ${w.length} ${w.length} 0 0 ${sweep} ${leafEnd.x} ${leafEnd.y}`}
         fill="none"
         strokeWidth={0.03}
         strokeDasharray="0.1 0.07"

@@ -35,6 +35,10 @@ export interface WallItem {
   edge: number;
   offset: number;
   length: number;
+  /** doors: the leaf hangs on the far end of the segment instead of the start */
+  hingeAtEnd?: boolean;
+  /** doors: the leaf swings away from the room instead of into it */
+  swingOutward?: boolean;
 }
 
 export interface Furniture {

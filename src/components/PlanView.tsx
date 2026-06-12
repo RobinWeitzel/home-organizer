@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { rectInsideCells } from '../model/cells';
 import { flatProjection, isoProjection, WALL_H } from '../model/iso';
 import { KIND_LABELS, useApp } from '../model/store';
-import type { FurnitureKind } from '../model/types';
+import type { FurnitureKind, WallItem } from '../model/types';
 import AddItemSheet from './AddItemSheet';
 import AddSheet from './AddSheet';
 import ConfirmDialog from './ConfirmDialog';
@@ -280,6 +280,30 @@ export default function PlanView() {
               <button className="btn btn-small" onClick={renameSelected}>
                 Rename
               </button>
+            )}
+            {selected.kind === 'wallItem' && (selectedEntity as WallItem | null)?.type === 'door' && (
+              <>
+                <button
+                  className="btn btn-small"
+                  aria-label="Flip hinge side"
+                  onClick={() => {
+                    const w = selectedEntity as WallItem;
+                    store.updateWallItem(w.id, { hingeAtEnd: !w.hingeAtEnd });
+                  }}
+                >
+                  Hinge
+                </button>
+                <button
+                  className="btn btn-small"
+                  aria-label="Flip swing direction"
+                  onClick={() => {
+                    const w = selectedEntity as WallItem;
+                    store.updateWallItem(w.id, { swingOutward: !w.swingOutward });
+                  }}
+                >
+                  Swing
+                </button>
+              </>
             )}
             {selected.kind === 'room' && (
               <>

@@ -44,6 +44,23 @@ describe('buildScene3D', () => {
     }
   });
 
+  it('flips the door hinge side and swing direction', () => {
+    const rooms = [room('r1', 0, 0, 4, 4)];
+    // edge 1 runs (4,0)->(4,4); inward is -x
+    const base: WallItem = { id: 'd1', roomId: 'r1', type: 'door', edge: 1, offset: 1.5, length: 0.9 };
+    const plain = buildScene3D(rooms, [base], []).doors[0];
+    expect(plain.hinge).toEqual({ x: 4, y: 1.5 });
+    expect(plain.inward).toEqual({ x: -1, y: 0 });
+
+    const flipped = buildScene3D(
+      rooms,
+      [{ ...base, hingeAtEnd: true, swingOutward: true }],
+      [],
+    ).doors[0];
+    expect(flipped.hinge).toEqual({ x: 4, y: 2.4 });
+    expect(flipped.inward).toEqual({ x: 1, y: 0 });
+  });
+
   it('an opening cuts the shared wall without building a door or jambs', () => {
     const rooms = [room('r1', 0, 0, 4, 4), room('r2', 4, 0, 8, 4)];
     // r1 edge 1 runs (4,0)->(4,4); opening at offset 1, length 2 -> y in [1, 3]
