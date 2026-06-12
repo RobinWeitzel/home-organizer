@@ -11,26 +11,20 @@
 
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { ISO_X, ISO_Y, ISO_Z, isoProjection } from '../../model/iso';
+import { ISO_Y, ISO_Z, makeIsoProjection, type ViewRotation } from '../../model/iso';
+import { isoMatrixValues } from './IsoCamera';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-/** Build the projectionMatrix exactly as IsoCamera.tsx does. */
+/** Build the projectionMatrix from the component's shared builder. */
 function buildProjectionMatrix(
   view: { cx: number; cy: number; scale: number },
   size: { w: number; h: number },
+  rotation: ViewRotation = 0,
 ): THREE.Matrix4 {
-  const k = 0.002;
-  const sx = (2 * view.scale) / size.w;
-  const sy = (2 * view.scale) / size.h;
   const m = new THREE.Matrix4();
   // Matrix4.set takes ROW-MAJOR arguments
-  m.set(
-    sx * ISO_X,  0,                      -sx * ISO_X,  -sx * view.cx,
-    -sy * ISO_Y, sy * ISO_Z,             -sy * ISO_Y,   sy * view.cy,
-    -k,          (-2 * ISO_Y * k) / ISO_Z, -k,           0,
-    0,           0,                       0,             1,
-  );
+  m.set(...(isoMatrixValues(view, size, rotation) as Parameters<THREE.Matrix4['set']>));
   return m;
 }
 
@@ -60,8 +54,9 @@ function referenceNDC(
   planX: number, planY: number, height: number,
   view: { cx: number; cy: number; scale: number },
   size: { w: number; h: number },
+  rotation: ViewRotation = 0,
 ) {
-  const p = isoProjection.project(planX, planY, height);
+  const p = makeIsoProjection(rotation).project(planX, planY, height);
   const ndcX = (p.x - view.cx) * (2 * view.scale) / size.w;
   const ndcY = -(p.y - view.cy) * (2 * view.scale) / size.h;
   return { ndcX, ndcY };
@@ -83,14 +78,17 @@ const POINTS: [number, number, number][] = [
 describe('IsoCamera projection matrix', () => {
   const mat = buildProjectionMatrix(VIEW, SIZE);
 
-  describe('NDC x/y match isoProjection reference', () => {
-    for (const [X, H, Z] of POINTS) {
-      it(`(${X}, ${H}, ${Z})`, () => {
-        const ndc = project(mat, X, H, Z);
-        const ref = referenceNDC(X, Z, H, VIEW, SIZE);
-        expect(ndc.x).toBeCloseTo(ref.ndcX, 10);
-        expect(ndc.y).toBeCloseTo(ref.ndcY, 10);
-      });
+  describe('NDC x/y match isoProjection reference at every rotation', () => {
+    for (const rotation of [0, 1, 2, 3] as const) {
+      const rmat = buildProjectionMatrix(VIEW, SIZE, rotation);
+      for (const [X, H, Z] of POINTS) {
+        it(`rot ${rotation}: (${X}, ${H}, ${Z})`, () => {
+          const ndc = project(rmat, X, H, Z);
+          const ref = referenceNDC(X, Z, H, VIEW, SIZE, rotation);
+          expect(ndc.x).toBeCloseTo(ref.ndcX, 10);
+          expect(ndc.y).toBeCloseTo(ref.ndcY, 10);
+        });
+      }
     }
   });
 

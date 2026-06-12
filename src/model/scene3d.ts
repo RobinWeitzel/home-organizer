@@ -43,11 +43,19 @@ export interface SceneOpening {
   selected: boolean;
 }
 
+export type Facing = 0 | 1 | 2 | 3;
+
+/** Front direction: explicit, else the long side faces the default camera. */
+export function furnitureFacing(f: Pick<Furniture, 'w' | 'h' | 'facing'>): Facing {
+  return f.facing ?? (f.h > f.w ? 3 : 0);
+}
+
 export interface SceneFurniture {
   id: string;
   kind: FurnitureKind;
   name: string;
   color?: import('./furnitureColors').FurnitureColor;
+  facing: Facing;
   /** rendered footprint (inset against flush walls) */
   box: Rect;
   height: number;
@@ -196,6 +204,7 @@ export function buildScene3D(
         if (!room) return [];
         return [{
           id: f.id, kind: f.kind, name: f.name, color: f.color,
+          facing: furnitureFacing(f),
           box: insetAgainstWalls(f, polygonEdges(room.polygon)),
           height: KIND_HEIGHTS[f.kind],
           z0: z0.get(f.id) ?? 0,

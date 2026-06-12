@@ -43,24 +43,46 @@ export interface Projection {
   unprojectFloor(sx: number, sy: number): Pt;
   /** up-screen displacement of a point raised to height z */
   lift(z: number): number;
+  /** floor direction of the camera ray (per unit of lift-walk t) */
+  ray: Pt;
 }
 
-export const isoProjection: Projection = {
-  mode: 'iso',
-  project: (x, y, z = 0) => ({ x: (x - y) * ISO_X, y: (x + y) * ISO_Y - z * ISO_Z }),
-  unprojectFloor: (sx, sy) => {
-    const u = sx / ISO_X; // x − y
-    const v = sy / ISO_Y; // x + y
-    return { x: (u + v) / 2, y: (v - u) / 2 };
-  },
-  lift: (z) => z * ISO_Z,
-};
+/** quarter-turn view rotations of the iso camera around the vertical axis */
+export type ViewRotation = 0 | 1 | 2 | 3;
+
+const ROT_COS = [1, 0, -1, 0] as const;
+const ROT_SIN = [0, 1, 0, -1] as const;
+
+export function makeIsoProjection(rot: ViewRotation = 0): Projection {
+  const c = ROT_COS[rot];
+  const sn = ROT_SIN[rot];
+  return {
+    mode: 'iso',
+    project: (x, y, z = 0) => {
+      const rx = c * x - sn * y;
+      const ry = sn * x + c * y;
+      return { x: (rx - ry) * ISO_X, y: (rx + ry) * ISO_Y - z * ISO_Z };
+    },
+    unprojectFloor: (sx, sy) => {
+      const u = sx / ISO_X; // rx − ry
+      const v = sy / ISO_Y; // rx + ry
+      const rx = (u + v) / 2;
+      const ry = (v - u) / 2;
+      return { x: c * rx + sn * ry, y: -sn * rx + c * ry };
+    },
+    lift: (z) => z * ISO_Z,
+    ray: { x: c + sn, y: c - sn },
+  };
+}
+
+export const isoProjection: Projection = makeIsoProjection(0);
 
 export const flatProjection: Projection = {
   mode: 'flat',
   project: (x, y) => ({ x, y }),
   unprojectFloor: (sx, sy) => ({ x: sx, y: sy }),
   lift: () => 0,
+  ray: { x: 0, y: 0 },
 };
 
 /**
@@ -74,8 +96,15 @@ export function tapLiftRange(p: Projection, h: number): number {
 /** true if the tap at floor point w lands on a box (footprint r, height h) */
 export function pointInLiftedRect(p: Projection, w: Pt, r: Rect, h: number): boolean {
   const tMax = tapLiftRange(p, h);
-  const t0 = Math.max(r.x - w.x, r.y - w.y, 0);
-  const t1 = Math.min(r.x + r.w - w.x, r.y + r.h - w.y, tMax);
+  // the screen point corresponds to floor points w + t·ray for t ∈ [0, tMax]
+  const span = (lo: number, hi: number, w0: number, d: number): [number, number] => {
+    if (d === 0) return w0 >= lo && w0 <= hi ? [0, Infinity] : [1, -1];
+    return d > 0 ? [lo - w0, hi - w0] : [w0 - hi, w0 - lo];
+  };
+  const sx = span(r.x, r.x + r.w, w.x, p.ray.x);
+  const sy = span(r.y, r.y + r.h, w.y, p.ray.y);
+  const t0 = Math.max(sx[0], sy[0], 0);
+  const t1 = Math.min(sx[1], sy[1], tMax);
   return t0 <= t1;
 }
 

@@ -1,5 +1,6 @@
 import { columnsKind, groupAreas } from './areaLayout';
 import { KIND_HEIGHTS } from './iso';
+import { furnitureFacing } from './scene3d';
 import type { Furniture, StorageArea } from './types';
 
 /**
@@ -42,7 +43,8 @@ export type AreaPlacement =
   | { newGroupIndex: number };
 
 export function frontGeometry(furniture: Furniture, areas: StorageArea[]): FrontGeometry {
-  const W = Math.max(furniture.w, furniture.h);
+  // the front face spans the side the piece faces with
+  const W = furnitureFacing(furniture) % 2 === 1 ? furniture.h : furniture.w;
   const H = KIND_HEIGHTS[furniture.kind];
   return {
     W,

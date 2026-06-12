@@ -72,6 +72,12 @@ export interface Furniture {
   name: string;
   /** optional colour override; absent = the kind's built-in palette */
   color?: import('./furnitureColors').FurnitureColor;
+  /**
+   * Which way the piece's front faces: 0 = plan south (+y), 1 = west (−x),
+   * 2 = north (−y), 3 = east (+x). Absent = the long side faces the
+   * default camera (legacy heuristic).
+   */
+  facing?: 0 | 1 | 2 | 3;
   x: number;
   y: number;
   w: number;

@@ -7,6 +7,7 @@ import {
   flatProjection,
   ISO_Y,
   isoProjection,
+  makeIsoProjection,
   pointInLiftedRect,
   solidSpans,
   tapLiftRange,
@@ -231,5 +232,57 @@ describe('mergeCollinearGaps', () => {
       from: { x: 5, y: 3.5 },
       to: { x: 5, y: 2.0 },
     });
+  });
+});
+
+describe('makeIsoProjection rotations', () => {
+  const pts = [
+    { x: 0, y: 0 },
+    { x: 3.2, y: 1.05 },
+    { x: -2, y: 5.5 },
+  ];
+
+  it('unprojectFloor inverts project at every rotation', () => {
+    for (const rot of [0, 1, 2, 3] as const) {
+      const p = makeIsoProjection(rot);
+      for (const w of pts) {
+        const s = p.project(w.x, w.y);
+        const back = p.unprojectFloor(s.x, s.y);
+        expect(back.x).toBeCloseTo(w.x, 10);
+        expect(back.y).toBeCloseTo(w.y, 10);
+      }
+    }
+  });
+
+  it('rotation 2 mirrors rotation 0 on the floor plane', () => {
+    const p0 = makeIsoProjection(0);
+    const p2 = makeIsoProjection(2);
+    for (const w of pts) {
+      const a = p0.project(w.x, w.y);
+      const b = p2.project(w.x, w.y);
+      expect(b.x).toBeCloseTo(-a.x, 10);
+      expect(b.y).toBeCloseTo(-a.y, 10);
+    }
+  });
+
+  it('the camera ray points at the lifted box from every rotation', () => {
+    // a 1×1 box of wall height at the origin; a tap slightly "in front" of it
+    // along the ray must hit at every rotation
+    const r = { x: 0, y: 0, w: 1, h: 1 };
+    for (const rot of [0, 1, 2, 3] as const) {
+      const p = makeIsoProjection(rot);
+      const t = tapLiftRange(p, WALL_H) / 2;
+      const w = { x: 0.5 - t * p.ray.x, y: 0.5 - t * p.ray.y };
+      expect(pointInLiftedRect(p, w, r, WALL_H)).toBe(true);
+      // and a tap on the far side along the ray must miss
+      const back = { x: 0.5 + (1 + t) * p.ray.x, y: 0.5 + (1 + t) * p.ray.y };
+      expect(pointInLiftedRect(p, back, r, WALL_H)).toBe(false);
+    }
+  });
+
+  it('flat projection has a null ray and exact hit testing', () => {
+    expect(flatProjection.ray).toEqual({ x: 0, y: 0 });
+    expect(pointInLiftedRect(flatProjection, { x: 0.5, y: 0.5 }, { x: 0, y: 0, w: 1, h: 1 }, 2)).toBe(true);
+    expect(pointInLiftedRect(flatProjection, { x: 1.5, y: 0.5 }, { x: 0, y: 0, w: 1, h: 1 }, 2)).toBe(false);
   });
 });

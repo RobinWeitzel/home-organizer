@@ -15,11 +15,11 @@ function dimColor(hex: string): string {
 }
 
 function Piece({ f, highlighted, dimmed }: { f: SceneFurniture; highlighted: boolean; dimmed: boolean }) {
-  // local frame faces the front toward +z (plan south) for wide pieces and
-  // toward +x (plan east) for deep ones — both faces the iso camera sees
-  const facingX = f.box.h > f.box.w;
-  const W = facingX ? f.box.h : f.box.w;
-  const D = facingX ? f.box.w : f.box.h;
+  // the local frame fronts +z; rotate it to the piece's facing
+  // (0 = plan south, 1 = west, 2 = north, 3 = east)
+  const sideways = f.facing % 2 === 1;
+  const W = sideways ? f.box.h : f.box.w;
+  const D = sideways ? f.box.w : f.box.h;
   const parts = useMemo(() => {
     const built = buildFurnitureParts(f.kind, W, D, f.height, f.id);
     if (!f.color) return built;
@@ -32,7 +32,7 @@ function Piece({ f, highlighted, dimmed }: { f: SceneFurniture; highlighted: boo
   return (
     <group
       position={[f.box.x + f.box.w / 2, f.z0, f.box.y + f.box.h / 2]}
-      rotation-y={facingX ? Math.PI / 2 : 0}
+      rotation-y={(-f.facing * Math.PI) / 2}
     >
       {parts.map((p) => (
         <mesh key={p.key} castShadow receiveShadow frustumCulled={false} position={p.pos}>

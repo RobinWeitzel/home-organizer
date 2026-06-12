@@ -1,7 +1,28 @@
+import { furnitureFacing } from '../model/scene3d';
 import type { Furniture } from '../model/types';
 
-/** Kind-specific line decoration drawn inside the furniture rect. */
+/**
+ * Kind-specific line decoration drawn inside the furniture rect. The shapes
+ * are authored for a south-facing piece; DecoShapes receives a virtual rect
+ * in that frame and the wrapper rotates it onto the real footprint.
+ */
 export function FurnitureDeco({ f }: { f: Furniture }) {
+  const facing = furnitureFacing(f);
+  if (facing === 0) return <DecoShapes f={f} />;
+  const cx = f.x + f.w / 2;
+  const cy = f.y + f.h / 2;
+  const sideways = facing % 2 === 1;
+  const lw = sideways ? f.h : f.w;
+  const lh = sideways ? f.w : f.h;
+  const vf = { ...f, x: cx - lw / 2, y: cy - lh / 2, w: lw, h: lh };
+  return (
+    <g transform={`rotate(${facing * 90} ${cx} ${cy})`}>
+      <DecoShapes f={vf} />
+    </g>
+  );
+}
+
+function DecoShapes({ f }: { f: Furniture }) {
   const sw = 0.04;
   switch (f.kind) {
     case 'dresser':

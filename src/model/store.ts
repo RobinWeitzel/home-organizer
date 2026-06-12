@@ -190,7 +190,7 @@ interface AppState {
   deleteWallItem: (id: string) => void;
 
   addFurniture: (roomId: string, kind: FurnitureKind, rect: Rect) => void;
-  updateFurniture: (id: string, patch: Partial<Pick<Furniture, 'name' | 'x' | 'y' | 'w' | 'h' | 'color'>>) => void;
+  updateFurniture: (id: string, patch: Partial<Pick<Furniture, 'name' | 'x' | 'y' | 'w' | 'h' | 'color' | 'facing'>>) => void;
   deleteFurniture: (id: string) => void;
 
   addArea: (furnitureId: string, name: string) => void;

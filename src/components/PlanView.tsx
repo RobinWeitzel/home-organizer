@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { rectInsideCells } from '../model/cells';
-import { flatProjection, isoProjection, WALL_H } from '../model/iso';
+import { flatProjection, isoProjection, WALL_H, makeIsoProjection, type ViewRotation } from '../model/iso';
 import { KIND_LABELS, useApp } from '../model/store';
 import { FURNITURE_COLOR_KEYS, FURNITURE_COLORS } from '../model/furnitureColors';
+import { furnitureFacing } from '../model/scene3d';
 import type { Furniture, FurnitureKind, WallItem } from '../model/types';
 import AddItemSheet from './AddItemSheet';
 import AddSheet from './AddSheet';
 import ConfirmDialog from './ConfirmDialog';
 import FloorSheet from './FloorSheet';
-import { IconCheck, IconChevronDown, IconClose, IconPencil, IconPlus, IconRedo, IconUndo } from './icons';
+import { IconCheck, IconChevronDown, IconClose, IconPencil, IconPlus, IconRedo, IconUndo, IconRotateView } from './icons';
 import IsoView from './iso3d/IsoView';
 import PlanCanvas from './PlanCanvas';
 import { usePrompt } from './PromptDialog';
@@ -46,7 +47,20 @@ export default function PlanView() {
   const [mode, setMode] = useState<'iso' | 'flat'>(() =>
     localStorage.getItem('planViewMode') === 'flat' ? 'flat' : 'iso',
   );
-  const projection = mode === 'iso' ? isoProjection : flatProjection;
+  const [rotation, setRotation] = useState<ViewRotation>(() => {
+    const stored = Number(localStorage.getItem('planRotation'));
+    return ([0, 1, 2, 3] as const).includes(stored as ViewRotation) ? (stored as ViewRotation) : 0;
+  });
+  const projection = mode === 'iso' ? makeIsoProjection(rotation) : flatProjection;
+  const rotateView = () => {
+    const next = ((rotation + 1) % 4) as ViewRotation;
+    // keep the world point at the screen centre fixed across the turn
+    const w = makeIsoProjection(rotation).unprojectFloor(view.cx, view.cy);
+    const c = makeIsoProjection(next).project(w.x, w.y);
+    setView({ ...view, cx: c.x, cy: c.y });
+    setRotation(next);
+    localStorage.setItem('planRotation', String(next));
+  };
   const toggleMode = () => {
     const next = mode === 'iso' ? 'flat' : 'iso';
     setMode(next);
@@ -189,6 +203,8 @@ export default function PlanView() {
       y: Math.round((cy - f.w / 2) * 20) / 20,
       w: f.h,
       h: f.w,
+      // a quarter-turn clockwise: the front follows the footprint
+      facing: ((furnitureFacing(f) + 1) % 4) as 0 | 1 | 2 | 3,
     };
     if (rectInsideCells(rotated, cells)) store.updateFurniture(f.id, rotated);
   };
@@ -251,7 +267,7 @@ export default function PlanView() {
       <div className="canvas-wrap" ref={wrapRef}>
         {currentFloorId &&
           (projection.mode === 'iso' ? (
-            <IsoView {...canvasProps} />
+            <IsoView {...canvasProps} rotation={rotation} />
           ) : (
             <PlanCanvas {...canvasProps} projection={projection} />
           ))}
@@ -366,6 +382,11 @@ export default function PlanView() {
           <button className="fab" onClick={toggleMode} aria-label="Toggle 2D/3D view">
             {mode === 'iso' ? '2D' : '3D'}
           </button>
+          {mode === 'iso' && (
+            <button className="fab" onClick={rotateView} aria-label="Rotate view">
+              <IconRotateView size={19} />
+            </button>
+          )}
         </div>
         <div className="canvas-fabs">
           {editing ? (

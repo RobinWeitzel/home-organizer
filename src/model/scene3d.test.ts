@@ -1,6 +1,6 @@
 // src/model/scene3d.test.ts
 import { describe, expect, it } from 'vitest';
-import { buildScene3D } from './scene3d';
+import { buildScene3D, furnitureFacing } from './scene3d';
 import { SILL_H, WALL_H, WALL_T } from './iso';
 import type { Furniture, Room, WallItem } from './types';
 
@@ -204,5 +204,14 @@ describe('buildScene3D', () => {
     const s = buildScene3D([room('r1', 0, 0, 4, 3)], [], [f]);
     expect(s.furniture[0].height).toBe(2.0); // KIND_HEIGHTS.wardrobe
     expect(s.furniture[0].box.x).toBeCloseTo(WALL_T / 2, 10); // inset off the x=0 wall
+  });
+});
+
+describe('furnitureFacing', () => {
+  it('defaults to the legacy heuristic and honours an explicit facing', () => {
+    expect(furnitureFacing({ w: 2, h: 0.5 })).toBe(0); // wide → south
+    expect(furnitureFacing({ w: 0.5, h: 2 })).toBe(3); // deep → east
+    expect(furnitureFacing({ w: 2, h: 0.5, facing: 2 })).toBe(2);
+    expect(furnitureFacing({ w: 0.5, h: 2, facing: 0 })).toBe(0);
   });
 });

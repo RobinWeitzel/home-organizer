@@ -167,6 +167,14 @@ export const IconChevronRight = (p: P) => (
   </Icon>
 );
 
+/** quarter-turn view rotation: circular arrow seen from above */
+export const IconRotateView = (p: P) => (
+  <Icon {...p}>
+    <path d="M 19.5 12 A 7.5 7.5 0 1 1 12 4.5" />
+    <path d="M 8.5 1.5 L 12 4.5 L 8.5 7.5" />
+  </Icon>
+);
+
 export const IconUndo = (p: P) => (
   <Icon {...p}>
     <path d="M 8.5 6.5 L 4.5 10.5 L 8.5 14.5" />

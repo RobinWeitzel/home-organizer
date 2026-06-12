@@ -26,16 +26,27 @@ export function projectRectPoints(proj: Projection, r: Rect): string {
 
 /** screen silhouette of an extruded box (hexagon; degenerates to the rect at zero lift) */
 export function boxSilhouette(proj: Projection, r: Rect, h: number): string {
-  const x2 = r.x + r.w;
-  const y2 = r.y + r.h;
-  return pts([
-    proj.project(r.x, r.y, h),
-    proj.project(x2, r.y, h),
-    proj.project(x2, r.y, 0),
-    proj.project(x2, y2, 0),
-    proj.project(r.x, y2, 0),
-    proj.project(r.x, y2, h),
-  ]);
+  // generic for any view rotation: hull of the eight projected box corners
+  const corners: Pt[] = [];
+  for (const x of [r.x, r.x + r.w])
+    for (const y of [r.y, r.y + r.h]) for (const z of [0, h]) corners.push(proj.project(x, y, z));
+  return pts(convexHull(corners));
+}
+
+/** monotone-chain convex hull (small fixed inputs) */
+function convexHull(points: Pt[]): Pt[] {
+  const ps = [...points].sort((a, b) => a.x - b.x || a.y - b.y);
+  const cross = (o: Pt, a: Pt, b: Pt) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const half = (input: Pt[]): Pt[] => {
+    const out: Pt[] = [];
+    for (const p of input) {
+      while (out.length >= 2 && cross(out[out.length - 2], out[out.length - 1], p) <= 0) out.pop();
+      out.push(p);
+    }
+    out.pop();
+    return out;
+  };
+  return [...half(ps), ...half([...ps].reverse())];
 }
 
 /** item-count chip drawn as a UI overlay above the scene so walls never clip it */

@@ -8,7 +8,7 @@ import {
   rectInsideCells,
 } from '../../model/cells';
 import { wallItemSegment } from '../../model/geometry';
-import { isoProjection, KIND_HEIGHTS } from '../../model/iso';
+import { KIND_HEIGHTS, makeIsoProjection, type ViewRotation } from '../../model/iso';
 import { useApp } from '../../model/store';
 import { buildScene3D, isTiledRoom } from '../../model/scene3d';
 import {
@@ -38,10 +38,12 @@ export interface IsoViewProps {
   onMissWall: () => void;
   onPlaced?: () => void;
   browse?: boolean;
+  rotation?: ViewRotation;
 }
 
 export default function IsoView(props: IsoViewProps) {
-  const { view, tool, armedShapeOp } = props;
+  const { view, tool, armedShapeOp, rotation = 0 } = props;
+  const projection = useMemo(() => makeIsoProjection(rotation), [rotation]);
   const palette = usePalette();
   const data = useApp((s) => s.data);
   const currentFloorId = useApp((s) => s.currentFloorId);
@@ -93,14 +95,14 @@ export default function IsoView(props: IsoViewProps) {
 
   const svgRef = useRef<SVGSVGElement>(null);
   const { ghost, handlers } = usePlanPointer({
-    svgRef, projection: isoProjection,
+    svgRef, projection,
     view, setView: props.setView, tool,
     furnitureKind: props.furnitureKind, armedShapeOp,
     onShapeOpDone: props.onShapeOpDone, onOpenFurniture: props.onOpenFurniture,
     onMissWall: props.onMissWall, onPlaced: props.onPlaced, browse: props.browse,
   });
 
-  const proj = isoProjection;
+  const proj = projection;
   const highlight = furniture.find((f) => f.id === highlightFurnitureId);
   const selectedRoom = selected?.kind === 'room' ? rooms.find((r) => r.id === selected.id) : undefined;
   const selectedFurniture =
@@ -126,7 +128,7 @@ export default function IsoView(props: IsoViewProps) {
         gl={{ antialias: true }}
         style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
       >
-        <IsoCamera view={view} size={props.size} />
+        <IsoCamera view={view} size={props.size} rotation={rotation} />
         <ambientLight intensity={0.85} />
         <directionalLight
           castShadow position={[-6, 16, -9]} intensity={1.7}

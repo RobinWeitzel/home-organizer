@@ -87,11 +87,11 @@ function distToSegment(p: Pt, a: Pt, b: Pt): number {
   return dist(p, { x: a.x + t * (b.x - a.x), y: a.y + t * (b.y - a.y) });
 }
 
-/** try the floor point and points diagonally in front of it, up to the wall-top lift */
+/** try the floor point and points along the camera ray, up to the wall-top lift */
 function liftedHit(projection: Projection, w: Pt, test: (p: Pt) => boolean): boolean {
   const tMax = tapLiftRange(projection, WALL_H);
   for (let t = 0; t <= tMax + 1e-9; t += 0.1) {
-    if (test({ x: w.x + t, y: w.y + t })) return true;
+    if (test({ x: w.x + t * projection.ray.x, y: w.y + t * projection.ray.y })) return true;
   }
   return false;
 }
