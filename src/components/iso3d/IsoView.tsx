@@ -287,7 +287,7 @@ export default function IsoView(props: IsoViewProps) {
               const c = proj.project(ghost.x + ghost.w / 2, ghost.y + ghost.h / 2);
               return (
                 <text className="dim-label" x={c.x} y={c.y + 0.12} textAnchor="middle">
-                  {ghost.w} × {ghost.h} m
+                  {Math.round(ghost.w * 100) / 100} × {Math.round(ghost.h * 100) / 100} m
                 </text>
               );
             })()}

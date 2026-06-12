@@ -73,20 +73,50 @@ function WallItemShape({ w, room, selected }: { w: WallItem; room: Room; selecte
   );
 }
 
-/** Wall length labels + edge midpoint handles for the selected room. */
+const fmtLen = (v: number) => Math.round(v * 100) / 100;
+
+/** True when a room is too tight for labels on every wall. */
+function isSmallRoom(polygon: Room['polygon']): boolean {
+  const xs = polygon.map((p) => p.x);
+  const ys = polygon.map((p) => p.y);
+  return Math.max(...xs) - Math.min(...xs) < 2.2 || Math.max(...ys) - Math.min(...ys) < 2.2;
+}
+
+/**
+ * Wall length labels + edge midpoint handles for the selected room. Small
+ * rooms get one label per orientation, placed outside the walls — inside
+ * they'd pile up on each other.
+ */
 function RoomDimensions({ room, scale }: { room: Room; scale: number }) {
   const edges = polygonEdges(room.polygon);
   const handleR = 8 / scale;
+  const small = isSmallRoom(room.polygon);
+  let labelled = edges.map((_, i) => i);
+  if (small) {
+    const longest = (horizontal: boolean) => {
+      let best = -1;
+      for (let i = 0; i < edges.length; i++) {
+        const e = edges[i];
+        if ((e.a.y === e.b.y) !== horizontal) continue;
+        if (best === -1 || e.len > edges[best].len) best = i;
+      }
+      return best;
+    };
+    labelled = [longest(true), longest(false)].filter((i) => i >= 0);
+  }
   return (
     <g>
       {edges.map((e, i) => {
         const mid = { x: (e.a.x + e.b.x) / 2, y: (e.a.y + e.b.y) / 2 };
-        const label = { x: mid.x + e.inward.x * 0.42, y: mid.y + e.inward.y * 0.42 };
+        const dir = small ? -0.42 : 0.42;
+        const label = { x: mid.x + e.inward.x * dir, y: mid.y + e.inward.y * dir };
         return (
           <g key={i}>
-            <text className="dim-label" x={label.x} y={label.y + 0.12} textAnchor="middle">
-              {Math.round(e.len * 100) / 100} m
-            </text>
+            {labelled.includes(i) && (
+              <text className="dim-label" x={label.x} y={label.y + 0.12} textAnchor="middle">
+                {fmtLen(e.len)} m
+              </text>
+            )}
             <rect
               className="edge-handle"
               x={mid.x - handleR}
@@ -183,6 +213,12 @@ export default function PlanCanvas({
     ? wallItemSegment(selectedWallItem, rooms.find((r) => r.id === selectedWallItem.roomId)!.polygon)
     : null;
   const handleR = 9 / view.scale;
+  // a small selected room shows its dimensions instead of its name — both
+  // together would be unreadable
+  const labelsHiddenFor =
+    selectedRoom && tool === 'select' && !armedShapeOp && isSmallRoom(selectedRoom.polygon)
+      ? selectedRoom.id
+      : null;
 
   return (
     <svg
@@ -196,12 +232,16 @@ export default function PlanCanvas({
         return (
           <g key={r.id}>
             <path className="room-rect" d={polygonPath(r.polygon)} strokeWidth={WALL_W} />
-            <text className="room-label" x={geo.centroid.x} y={geo.centroid.y - 0.1} textAnchor="middle">
-              {r.name}
-            </text>
-            <text className="area-label" x={geo.centroid.x} y={geo.centroid.y + 0.38} textAnchor="middle">
-              {Math.round(geo.area * 10) / 10} m²
-            </text>
+            {r.id !== labelsHiddenFor && (
+              <>
+                <text className="room-label" x={geo.centroid.x} y={geo.centroid.y - 0.1} textAnchor="middle">
+                  {r.name}
+                </text>
+                <text className="area-label" x={geo.centroid.x} y={geo.centroid.y + 0.38} textAnchor="middle">
+                  {Math.round(geo.area * 10) / 10} m²
+                </text>
+              </>
+            )}
           </g>
         );
       })}
@@ -337,7 +377,7 @@ export default function PlanCanvas({
             y={ghost.y + ghost.h / 2 + 0.12}
             textAnchor="middle"
           >
-            {ghost.w} × {ghost.h} m
+            {fmtLen(ghost.w)} × {fmtLen(ghost.h)} m
           </text>
         </g>
       )}
