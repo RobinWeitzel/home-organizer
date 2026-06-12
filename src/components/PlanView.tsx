@@ -34,6 +34,7 @@ const PLACEMENT_HINTS: Record<Exclude<Tool, 'select'>, string> = {
   room: 'Drag on the grid to draw a room',
   door: 'Tap a wall to place the door',
   window: 'Tap a wall to place the window',
+  opening: 'Tap a wall to open it up — drag the ends to widen',
   furniture: 'Tap inside a room to place it',
 };
 
@@ -160,7 +161,7 @@ export default function PlanView() {
     selected?.kind === 'wallItem'
       ? (() => {
           const w = selectedEntity as { type?: string; length?: number } | null;
-          const label = w?.type === 'door' ? 'Door' : 'Window';
+          const label = w?.type === 'door' ? 'Door' : w?.type === 'opening' ? 'Opening' : 'Window';
           return w?.length ? `${label} · ${w.length.toFixed(1).replace(/\.0$/, '')} m` : label;
         })()
       : ((selectedEntity as { name?: string } | null)?.name ?? '');
@@ -208,7 +209,7 @@ export default function PlanView() {
       const count = store.countItemsInFurniture(selected.id);
       return `This deletes the furniture with its storage areas and ${count} item(s).`;
     }
-    return 'This removes the door/window from the wall.';
+    return 'This removes it from the wall (removing an opening closes the wall again).';
   })();
 
   const floors = data.floors;

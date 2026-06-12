@@ -142,7 +142,7 @@ export default function IsoView(props: IsoViewProps) {
         </mesh>
         <Floors floors={floors} skirtColor={palette['--floor-skirt']} />
         <Walls boxes={scene.wallBoxes} palette={palette} />
-        <WallOpenings doors={scene.doors} windows={scene.windows} wood={palette['--door-wood']} />
+        <WallOpenings doors={scene.doors} windows={scene.windows} openings={scene.openings} wood={palette['--door-wood']} />
         <FurnitureMeshes pieces={scene.furniture} highlightId={highlightFurnitureId} />
       </Canvas>
       <svg

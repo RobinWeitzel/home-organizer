@@ -12,7 +12,7 @@ export interface View {
   scale: number;
 }
 
-export type Tool = 'select' | 'room' | 'door' | 'window' | 'furniture';
+export type Tool = 'select' | 'room' | 'door' | 'window' | 'opening' | 'furniture';
 export type ShapeOp = 'extend' | 'carve';
 
 const TAP_THRESHOLD_PX = 8;
@@ -24,6 +24,7 @@ const FURNITURE_GRID = 0.25;
 const WALL_ITEM_GRID = 0.1;
 const DOOR_LENGTH = 0.9;
 const WINDOW_LENGTH = 1.2;
+const OPENING_LENGTH = 1.5;
 
 interface Pt {
   x: number;
@@ -505,8 +506,8 @@ export function usePlanPointer(opts: {
       }
       return;
     }
-    if (tool === 'door' || tool === 'window') {
-      const length = tool === 'door' ? DOOR_LENGTH : WINDOW_LENGTH;
+    if (tool === 'door' || tool === 'window' || tool === 'opening') {
+      const length = tool === 'door' ? DOOR_LENGTH : tool === 'window' ? WINDOW_LENGTH : OPENING_LENGTH;
       for (const room of floorRooms()) {
         let hit: { edge: number; offset: number } | null = null;
         liftedHit(projection, w, (p) => {

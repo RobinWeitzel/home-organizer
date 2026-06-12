@@ -35,6 +35,14 @@ export interface SceneWindow {
   selected: boolean;
 }
 
+/** a doorless passage — rendered only as selection feedback */
+export interface SceneOpening {
+  id: string;
+  from: Pt;
+  to: Pt;
+  selected: boolean;
+}
+
 export interface SceneFurniture {
   id: string;
   kind: FurnitureKind;
@@ -50,6 +58,7 @@ export interface Scene3D {
   wallBoxes: Box3D[];
   doors: SceneDoor[];
   windows: SceneWindow[];
+  openings: SceneOpening[];
   furniture: SceneFurniture[];
 }
 
@@ -87,6 +96,7 @@ export function buildScene3D(
 
   const doors: SceneDoor[] = [];
   const windows: SceneWindow[] = [];
+  const openings: SceneOpening[] = [];
   for (const { item, seg } of segs) {
     // sill/head strips span exactly the cut gap so they abut the jamb wall
     // faces instead of overlapping them with coplanar geometry
@@ -104,6 +114,12 @@ export function buildScene3D(
           z0: SILL_H, z1: Math.min(WINDOW_TOP, WALL_H),
           selected: opts.selectedWallItemId === item.id,
         });
+    } else if (item.type === 'opening') {
+      // the gap is already cut from the walls; nothing is built in its place
+      openings.push({
+        id: item.id, from: seg.from, to: seg.to,
+        selected: opts.selectedWallItemId === item.id,
+      });
     } else {
       const gap = mergeCollinearGaps({ from: seg.from, to: seg.to }, doorGaps);
       doors.push({
@@ -140,6 +156,7 @@ export function buildScene3D(
     wallBoxes: dedupedBoxes,
     doors,
     windows: [...windowByKey.values()],
+    openings,
     furniture: furniture.flatMap((f) => {
       const room = roomById.get(f.roomId);
       if (!room) return [];

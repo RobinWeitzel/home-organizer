@@ -668,6 +668,17 @@ select {
   stroke: var(--select);
 }
 
+/* doorless passage: faint threshold so it stays findable and tappable */
+.opening-line {
+  stroke: var(--door-leaf);
+  opacity: 0.55;
+}
+
+.opening-line-selected {
+  stroke: var(--select);
+  opacity: 1;
+}
+
 .room-label {
   font-size: 0.45px;
   font-weight: 600;

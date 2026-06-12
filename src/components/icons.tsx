@@ -78,6 +78,14 @@ export const IconWindow = (p: P) => (
   </Icon>
 );
 
+/** a wall with a gap: open passage between rooms */
+export const IconOpening = (p: P) => (
+  <Icon {...p}>
+    <path d="M 3.5 12 H 8.5 M 15.5 12 H 20.5" strokeWidth={2.6} />
+    <path d="M 8.5 9 V 15 M 15.5 9 V 15" strokeWidth={1.2} strokeDasharray="1.6 1.4" />
+  </Icon>
+);
+
 export const IconFurniture = (p: P) => (
   <Icon {...p}>
     <rect x={4.5} y={4} width={15} height={14} rx={1} />

@@ -1,8 +1,22 @@
 // src/components/iso3d/WallOpenings.tsx
 import { WALL_T } from '../../model/iso';
-import type { SceneDoor, SceneWindow } from '../../model/scene3d';
+import type { SceneDoor, SceneOpening, SceneWindow } from '../../model/scene3d';
 
 const SELECT = '#2563eb';
+
+/** an opening is just absent wall — only its selection needs a visual */
+function OpeningMarker({ o }: { o: SceneOpening }) {
+  if (!o.selected) return null;
+  const mid = { x: (o.from.x + o.to.x) / 2, y: (o.from.y + o.to.y) / 2 };
+  const len = Math.abs(o.to.x - o.from.x) + Math.abs(o.to.y - o.from.y);
+  const horizontal = Math.abs(o.to.x - o.from.x) > Math.abs(o.to.y - o.from.y);
+  return (
+    <mesh frustumCulled={false} position={[mid.x, 0.012, mid.y]}>
+      <boxGeometry args={[horizontal ? len : WALL_T, 0.02, horizontal ? WALL_T : len]} />
+      <meshLambertMaterial color={SELECT} transparent opacity={0.75} />
+    </mesh>
+  );
+}
 
 function DoorLeaf({ d, wood }: { d: SceneDoor; wood: string }) {
   // leaf: thin box from hinge, extending d.length along inward, swung open 90°
@@ -59,8 +73,8 @@ function WindowMesh({ w }: { w: SceneWindow }) {
   );
 }
 
-export function WallOpenings({ doors, windows, wood }: {
-  doors: SceneDoor[]; windows: SceneWindow[]; wood: string;
+export function WallOpenings({ doors, windows, openings, wood }: {
+  doors: SceneDoor[]; windows: SceneWindow[]; openings: SceneOpening[]; wood: string;
 }) {
   // Collect unique jamb positions across all doors to avoid coincident duplicates
   // when two doors share a merged wall gap.
@@ -93,6 +107,7 @@ export function WallOpenings({ doors, windows, wood }: {
       {jambs}
       {doors.map((d) => <DoorLeaf key={d.id} d={d} wood={wood} />)}
       {windows.map((w) => <WindowMesh key={w.id} w={w} />)}
+      {openings.map((o) => <OpeningMarker key={o.id} o={o} />)}
     </>
   );
 }

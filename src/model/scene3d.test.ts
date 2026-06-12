@@ -44,6 +44,23 @@ describe('buildScene3D', () => {
     }
   });
 
+  it('an opening cuts the shared wall without building a door or jambs', () => {
+    const rooms = [room('r1', 0, 0, 4, 4), room('r2', 4, 0, 8, 4)];
+    // r1 edge 1 runs (4,0)->(4,4); opening at offset 1, length 2 -> y in [1, 3]
+    const opening: WallItem = { id: 'o1', roomId: 'r1', type: 'opening', edge: 1, offset: 1, length: 2 };
+    const s = buildScene3D(rooms, [opening], [], { selectedWallItemId: 'o1' });
+    expect(s.doors).toHaveLength(0);
+    expect(s.openings).toEqual([
+      { id: 'o1', from: { x: 4, y: 1 }, to: { x: 4, y: 3 }, selected: true },
+    ]);
+    // the shared wall x=4 is split around the gap: no wall box covers y in (1, 3)
+    const onLine = s.wallBoxes.filter((b) => Math.abs(b.x + b.w / 2 - 4) < 1e-6);
+    expect(onLine.length).toBeGreaterThan(0);
+    for (const b of onLine) {
+      expect(b.y >= 3 - 1e-6 || b.y + b.h <= 1 + 1e-6).toBe(true);
+    }
+  });
+
   it('emits a sill box and glass quad (no head box below WINDOW_TOP)', () => {
     // WALL_H(1.1) < WINDOW_TOP(2.0) → no head box is emitted
     const win: WallItem = { id: 'w1', roomId: 'r1', type: 'window', edge: 0, offset: 1, length: 1.2 };

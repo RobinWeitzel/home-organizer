@@ -1,6 +1,6 @@
 import { KIND_LABELS } from '../model/store';
 import type { FurnitureKind } from '../model/types';
-import { IconClose, IconDoor, IconRoom, IconWindow, KIND_GLYPHS } from './icons';
+import { IconClose, IconDoor, IconOpening, IconRoom, IconWindow, KIND_GLYPHS } from './icons';
 import type { Tool } from './usePlanPointer';
 
 const KINDS = Object.keys(KIND_LABELS) as FurnitureKind[];
@@ -41,6 +41,10 @@ export default function AddSheet({
             <button className="add-tile" onClick={() => onPick('window')}>
               <IconWindow size={24} />
               <span>Window</span>
+            </button>
+            <button className="add-tile" onClick={() => onPick('opening')}>
+              <IconOpening size={24} />
+              <span>Opening</span>
             </button>
           </div>
           <div className="add-section">Furniture</div>

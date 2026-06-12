@@ -29,7 +29,8 @@ export interface Room {
 export interface WallItem {
   id: string;
   roomId: string;
-  type: 'door' | 'window';
+  /** an opening is a doorless passage — it just erases the wall section */
+  type: 'door' | 'window' | 'opening';
   /** index into the room polygon's edge list */
   edge: number;
   offset: number;

@@ -38,6 +38,22 @@ function WallItemShape({ w, room, selected }: { w: WallItem; room: Room; selecte
       </g>
     );
   }
+  if (w.type === 'opening') {
+    return (
+      <g>
+        <line className="wall-gap" x1={from.x} y1={from.y} x2={to.x} y2={to.y} strokeWidth={WALL_W * 1.4} />
+        <line
+          className={selected ? 'opening-line opening-line-selected' : 'opening-line'}
+          x1={from.x}
+          y1={from.y}
+          x2={to.x}
+          y2={to.y}
+          strokeWidth={0.04}
+          strokeDasharray="0.12 0.1"
+        />
+      </g>
+    );
+  }
   const leafEnd = { x: from.x + inward.x * w.length, y: from.y + inward.y * w.length };
   const along = { x: to.x - from.x, y: to.y - from.y };
   const sweep = along.x * inward.y - along.y * inward.x > 0 ? 1 : 0;
