@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { rectInsideCells } from '../model/cells';
 import { flatProjection, isoProjection, WALL_H } from '../model/iso';
 import { KIND_LABELS, useApp } from '../model/store';
-import type { FurnitureKind, WallItem } from '../model/types';
+import { FURNITURE_COLOR_KEYS, FURNITURE_COLORS } from '../model/furnitureColors';
+import type { Furniture, FurnitureKind, WallItem } from '../model/types';
 import AddItemSheet from './AddItemSheet';
 import AddSheet from './AddSheet';
 import ConfirmDialog from './ConfirmDialog';
@@ -317,6 +318,22 @@ export default function PlanView() {
             )}
             {selected.kind === 'furniture' && (
               <>
+                <span className="color-row" role="group" aria-label="Furniture colour">
+                  <button
+                    className={`color-dot color-dot-auto${!(selectedEntity as Furniture | null)?.color ? ' color-dot-active' : ''}`}
+                    aria-label="Default colour"
+                    onClick={() => store.updateFurniture(selected.id, { color: undefined })}
+                  />
+                  {FURNITURE_COLOR_KEYS.map((c) => (
+                    <button
+                      key={c}
+                      className={`color-dot${(selectedEntity as Furniture | null)?.color === c ? ' color-dot-active' : ''}`}
+                      style={{ background: FURNITURE_COLORS[c].hex }}
+                      aria-label={FURNITURE_COLORS[c].label}
+                      onClick={() => store.updateFurniture(selected.id, { color: c })}
+                    />
+                  ))}
+                </span>
                 <button className="btn btn-small" onClick={rotateSelected}>
                   Rotate
                 </button>

@@ -11,6 +11,8 @@ export interface FurnPart {
   /** box center [x, y, z]; y measured up from the floor */
   pos: [number, number, number];
   color: string;
+  /** functional detail (knob, glass, screen, basin…) — never re-tinted */
+  fixed?: boolean;
 }
 
 /** how far details (door fronts, lids, rims) may protrude past the footprint */
@@ -41,8 +43,8 @@ function doors(W: number, D: number, color: string, y0: number, h: number): Furn
   return [
     { key: 'doorL', size: [dw, h, 0.032], pos: [-(gap / 2 + dw / 2), yc, D / 2], color },
     { key: 'doorR', size: [dw, h, 0.032], pos: [gap / 2 + dw / 2, yc, D / 2], color },
-    { key: 'knobL', size: [0.03, 0.09, 0.026], pos: [-(gap / 2 + 0.035), yc, D / 2 + 0.025], color: KNOB },
-    { key: 'knobR', size: [0.03, 0.09, 0.026], pos: [gap / 2 + 0.035, yc, D / 2 + 0.025], color: KNOB },
+    { key: 'knobL', size: [0.03, 0.09, 0.026], pos: [-(gap / 2 + 0.035), yc, D / 2 + 0.025], color: KNOB, fixed: true },
+    { key: 'knobR', size: [0.03, 0.09, 0.026], pos: [gap / 2 + 0.035, yc, D / 2 + 0.025], color: KNOB, fixed: true },
   ];
 }
 
@@ -79,6 +81,7 @@ export function buildFurnitureParts(
           size: [0.09, 0.026, 0.026],
           pos: [0, yc, D / 2 + 0.022],
           color: KNOB,
+          fixed: true,
         });
       }
       return parts;
@@ -103,7 +106,7 @@ export function buildFurnitureParts(
         { key: 'bandR', size: [0.06, 0.082, D + 0.062], pos: [W * 0.28, H - 0.035, 0], color: '#4d2e16' },
         { key: 'strapL', size: [0.06, H - 0.07, 0.016], pos: [-W * 0.28, (H - 0.07) / 2, D / 2], color: '#4d2e16' },
         { key: 'strapR', size: [0.06, H - 0.07, 0.016], pos: [W * 0.28, (H - 0.07) / 2, D / 2], color: '#4d2e16' },
-        { key: 'clasp', size: [0.07, 0.09, 0.022], pos: [0, H - 0.1, D / 2], color: KNOB },
+        { key: 'clasp', size: [0.07, 0.09, 0.022], pos: [0, H - 0.1, D / 2], color: KNOB, fixed: true },
       ];
     }
 
@@ -147,6 +150,7 @@ export function buildFurnitureParts(
             size: [bw, bh, D * 0.6],
             pos: [x + bw / 2, levels[i] + 0.02 + bh / 2, 0.03],
             color: BOOKS[Math.floor(rnd() * BOOKS.length)],
+            fixed: true,
           });
           x += bw + 0.008 + rnd() * 0.035;
           b++;
@@ -239,9 +243,9 @@ export function buildFurnitureParts(
         { key: 'frame', size: [W, baseH, D], pos: [0, baseH / 2, 0], color: frame },
         // headboard along the back edge — the head of the bed
         { key: 'headboard', size: [W, H - baseH, 0.05], pos: [0, baseH + (H - baseH) / 2, -(D / 2 - 0.025)], color: frame },
-        { key: 'mattress', size: [Math.max(0.05, W - 0.06), mattressH, Math.max(0.05, D - 0.08)], pos: [0, baseH + mattressH / 2, 0.01], color: '#e8e4da' },
+        { key: 'mattress', size: [Math.max(0.05, W - 0.06), mattressH, Math.max(0.05, D - 0.08)], pos: [0, baseH + mattressH / 2, 0.01], color: '#e8e4da', fixed: true },
         // blanket covers the foot end
-        { key: 'blanket', size: [Math.max(0.05, W - 0.05), mattressH * 0.6, blanketD], pos: [0, baseH + mattressH + mattressH * 0.3 - 0.02, D / 2 - 0.04 - blanketD / 2], color: '#9aa9b8' },
+        { key: 'blanket', size: [Math.max(0.05, W - 0.05), mattressH * 0.6, blanketD], pos: [0, baseH + mattressH + mattressH * 0.3 - 0.02, D / 2 - 0.04 - blanketD / 2], color: '#9aa9b8', fixed: true },
       ];
       const pillows = W > 1.1 ? 2 : 1;
       const pw = Math.max(0.05, (W - 0.2 - 0.06 * (pillows - 1)) / pillows);
@@ -252,6 +256,7 @@ export function buildFurnitureParts(
           size: [pw, 0.07, pd],
           pos: [-(W - 0.2) / 2 + pw / 2 + i * (pw + 0.06), baseH + mattressH + 0.035, -(D / 2 - 0.07 - pd / 2)],
           color: '#f3f1ec',
+          fixed: true,
         });
       }
       return parts;
@@ -265,9 +270,9 @@ export function buildFurnitureParts(
       return [
         { key: 'foot', size: [Math.max(0.08, W * 0.4), 0.03, Math.max(0.05, D * 0.8)], pos: [0, 0.015, 0], color: metal },
         { key: 'neck', size: [Math.max(0.05, W * 0.06), standH, Math.max(0.04, D * 0.25)], pos: [0, standH / 2, 0], color: metal },
-        { key: 'screen', size: [W, H - standH, screenD], pos: [0, standH + (H - standH) / 2, 0], color: '#1d2126' },
+        { key: 'screen', size: [W, H - standH, screenD], pos: [0, standH + (H - standH) / 2, 0], color: '#1d2126', fixed: true },
         // faint panel front so the screen face reads at the iso angle
-        { key: 'glow', size: [Math.max(0.05, W - 0.08), Math.max(0.05, H - standH - 0.08), 0.012], pos: [0, standH + (H - standH) / 2, screenD / 2], color: '#3b4654' },
+        { key: 'glow', size: [Math.max(0.05, W - 0.08), Math.max(0.05, H - standH - 0.08), 0.012], pos: [0, standH + (H - standH) / 2, screenD / 2], color: '#3b4654', fixed: true },
       ];
     }
 
@@ -275,8 +280,8 @@ export function buildFurnitureParts(
       const rim = 0.07;
       return [
         { key: 'body', size: [W, H, D], pos: [0, H / 2, 0], color: '#f2f1ee' },
-        { key: 'basin', size: [Math.max(0.05, W - 2 * rim), 0.02, Math.max(0.05, D - 2 * rim)], pos: [0, H - 0.009, 0], color: '#cfe5ef' },
-        { key: 'tap', size: [0.05, 0.07, 0.05], pos: [0, H - 0.005, -(D / 2 - rim / 2)], color: '#c9ccd1' },
+        { key: 'basin', size: [Math.max(0.05, W - 2 * rim), 0.02, Math.max(0.05, D - 2 * rim)], pos: [0, H - 0.009, 0], color: '#cfe5ef', fixed: true },
+        { key: 'tap', size: [0.05, 0.07, 0.05], pos: [0, H - 0.005, -(D / 2 - rim / 2)], color: '#c9ccd1', fixed: true },
       ];
     }
 
@@ -289,8 +294,8 @@ export function buildFurnitureParts(
         { key: 'body', size: [W, H, D], pos: [0, H / 2, 0], color: body },
         { key: 'doorTop', size: [Math.max(0.08, W - 0.05), Math.max(0.06, H - split - 0.05), 0.028], pos: [0, split + (H - split) / 2, D / 2], color: door },
         { key: 'doorBottom', size: [Math.max(0.08, W - 0.05), Math.max(0.06, split - 0.07), 0.028], pos: [0, split / 2 - 0.01, D / 2], color: door },
-        { key: 'handleTop', size: [0.028, Math.min(0.3, (H - split) * 0.5), 0.026], pos: [-(W / 2 - 0.07), split + (H - split) / 2, D / 2 + 0.024], color: '#c4c7cb' },
-        { key: 'handleBottom', size: [0.028, Math.min(0.25, split * 0.4), 0.026], pos: [-(W / 2 - 0.07), split / 2, D / 2 + 0.024], color: '#c4c7cb' },
+        { key: 'handleTop', size: [0.028, Math.min(0.3, (H - split) * 0.5), 0.026], pos: [-(W / 2 - 0.07), split + (H - split) / 2, D / 2 + 0.024], color: '#c4c7cb', fixed: true },
+        { key: 'handleBottom', size: [0.028, Math.min(0.25, split * 0.4), 0.026], pos: [-(W / 2 - 0.07), split / 2, D / 2 + 0.024], color: '#c4c7cb', fixed: true },
       ];
     }
 
@@ -301,7 +306,7 @@ export function buildFurnitureParts(
       const worktop = kind === 'stove' ? '#3a3f45' : '#8d8780';
       const parts: FurnPart[] = [
         { key: 'body', size: [W, H - 0.04, D], pos: [0, (H - 0.04) / 2, 0], color: body },
-        { key: 'top', size: [W + 0.03, 0.04, D + 0.03], pos: [0, H - 0.02, 0], color: worktop },
+        { key: 'top', size: [W + 0.03, 0.04, D + 0.03], pos: [0, H - 0.02, 0], color: worktop, fixed: true },
         { key: 'plinth', size: [Math.max(0.05, W - 0.06), 0.07, Math.max(0.05, D - 0.06)], pos: [0, 0.035, 0.01], color: '#b9b4ac' },
       ];
       if (kind === 'stove') {
@@ -314,6 +319,7 @@ export function buildFurnitureParts(
             size: [burner, 0.014, burner],
             pos: [sx * bx, H + 0.007, sz * bz],
             color: '#15181b',
+            fixed: true,
           });
         }
         parts.push({
@@ -321,6 +327,7 @@ export function buildFurnitureParts(
           size: [Math.max(0.08, W - 0.1), Math.max(0.08, H * 0.45), 0.024],
           pos: [0, H * 0.38, D / 2],
           color: '#2c3137',
+          fixed: true,
         });
       }
       if (kind === 'sink') {
@@ -329,8 +336,9 @@ export function buildFurnitureParts(
           size: [Math.max(0.05, W - 0.18), 0.016, Math.max(0.05, D - 0.18)],
           pos: [0, H + 0.008, 0],
           color: '#b9bec4',
+          fixed: true,
         });
-        parts.push({ key: 'tap', size: [0.045, 0.06, 0.045], pos: [0, H, -(D / 2 - 0.09)], color: '#c9ccd1' });
+        parts.push({ key: 'tap', size: [0.045, 0.06, 0.045], pos: [0, H, -(D / 2 - 0.09)], color: '#c9ccd1', fixed: true });
       }
       if (kind === 'counter') {
         // drawer fronts so a counter run reads as kitchen cabinets
@@ -354,8 +362,8 @@ export function buildFurnitureParts(
       return [
         { key: 'pedestal', size: [Math.max(0.06, W * 0.28), H - 0.12, Math.max(0.06, D * 0.32)], pos: [0, (H - 0.12) / 2, -(D * 0.05)], color: '#e8e7e4' },
         { key: 'basin', size: [W, 0.12, D], pos: [0, H - 0.06, 0], color: '#f2f1ee' },
-        { key: 'bowl', size: [Math.max(0.05, W - 0.12), 0.014, Math.max(0.05, D - 0.12)], pos: [0, H + 0.007 - 0.012, 0.01], color: '#dfe9ee' },
-        { key: 'tap', size: [0.04, 0.05, 0.04], pos: [0, H + 0.005, -(D / 2 - 0.06)], color: '#c9ccd1' },
+        { key: 'bowl', size: [Math.max(0.05, W - 0.12), 0.014, Math.max(0.05, D - 0.12)], pos: [0, H + 0.007 - 0.012, 0.01], color: '#dfe9ee', fixed: true },
+        { key: 'tap', size: [0.04, 0.05, 0.04], pos: [0, H + 0.005, -(D / 2 - 0.06)], color: '#c9ccd1', fixed: true },
       ];
     }
 
@@ -376,10 +384,10 @@ export function buildFurnitureParts(
       return [
         { key: 'tray', size: [W, trayH, D], pos: [0, trayH / 2, 0], color: '#e8e7e4' },
         // glass on the two open sides; the other two stand at walls
-        { key: 'glassFront', size: [W, H - trayH - 0.15, 0.018], pos: [0, trayH + (H - trayH - 0.15) / 2, D / 2 - 0.009], color: glass },
-        { key: 'glassRight', size: [0.018, H - trayH - 0.15, D], pos: [W / 2 - 0.009, trayH + (H - trayH - 0.15) / 2, 0], color: glass },
-        { key: 'riser', size: [0.035, H - trayH, 0.035], pos: [-(W / 2 - 0.05), (H + trayH) / 2 - 0.03, -(D / 2 - 0.05)], color: '#c9ccd1' },
-        { key: 'head', size: [0.14, 0.02, 0.14], pos: [-(W / 2 - 0.14), H - 0.05, -(D / 2 - 0.14)], color: '#c9ccd1' },
+        { key: 'glassFront', size: [W, H - trayH - 0.15, 0.018], pos: [0, trayH + (H - trayH - 0.15) / 2, D / 2 - 0.009], color: glass, fixed: true },
+        { key: 'glassRight', size: [0.018, H - trayH - 0.15, D], pos: [W / 2 - 0.009, trayH + (H - trayH - 0.15) / 2, 0], color: glass, fixed: true },
+        { key: 'riser', size: [0.035, H - trayH, 0.035], pos: [-(W / 2 - 0.05), (H + trayH) / 2 - 0.03, -(D / 2 - 0.05)], color: '#c9ccd1', fixed: true },
+        { key: 'head', size: [0.14, 0.02, 0.14], pos: [-(W / 2 - 0.14), H - 0.05, -(D / 2 - 0.14)], color: '#c9ccd1', fixed: true },
       ];
     }
 
@@ -388,8 +396,8 @@ export function buildFurnitureParts(
       const potH = H * 0.28;
       const parts: FurnPart[] = [
         { key: 'pot', size: [W * 0.62, potH, D * 0.62], pos: [0, potH / 2, 0], color: '#a96a48' },
-        { key: 'soil', size: [W * 0.5, 0.02, D * 0.5], pos: [0, potH - 0.005, 0], color: '#4a3a2c' },
-        { key: 'stem', size: [0.03, H * 0.4, 0.03], pos: [0, potH + H * 0.2, 0], color: '#5a4632' },
+        { key: 'soil', size: [W * 0.5, 0.02, D * 0.5], pos: [0, potH - 0.005, 0], color: '#4a3a2c', fixed: true },
+        { key: 'stem', size: [0.03, H * 0.4, 0.03], pos: [0, potH + H * 0.2, 0], color: '#5a4632', fixed: true },
       ];
       const GREENS = ['#5d8a4f', '#6f9c5e', '#4f7a43'];
       for (let i = 0; i < 3; i++) {
@@ -399,6 +407,7 @@ export function buildFurnitureParts(
           size: [size, H * 0.18, size],
           pos: [(rnd() - 0.5) * 0.05, potH + H * (0.22 + i * 0.17), (rnd() - 0.5) * 0.05],
           color: GREENS[i % GREENS.length],
+          fixed: true,
         });
       }
       return parts;

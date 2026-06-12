@@ -8,6 +8,7 @@ import {
   placementLine,
   type AreaPlacement,
 } from '../model/frontLayout';
+import { FURNITURE_COLORS, shiftColor } from '../model/furnitureColors';
 import type { Furniture, FurnitureKind, StorageArea } from '../model/types';
 
 /** wood tones lifted from the 3D furniture parts so the sheet matches the render */
@@ -82,7 +83,16 @@ export default function FurnitureFront({
   onPlace?: (id: string, placement: AreaPlacement) => void;
 }) {
   const kind = furniture.kind;
-  const wood = WOOD[kind];
+  const wood = (() => {
+    const base = WOOD[kind];
+    if (!furniture.color) return base;
+    const target = FURNITURE_COLORS[furniture.color].hex;
+    return {
+      body: shiftColor(base.body, base.body, target),
+      face: shiftColor(base.face, base.body, target),
+      plinth: shiftColor(base.plinth, base.body, target),
+    };
+  })();
   const open = kind === 'shelf' || kind === 'other';
   const svgRef = useRef<SVGSVGElement>(null);
   const [drag, setDrag] = useState<DragState | null>(null);

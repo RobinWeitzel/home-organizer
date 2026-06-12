@@ -70,6 +70,8 @@ export interface Furniture {
   roomId: string;
   kind: FurnitureKind;
   name: string;
+  /** optional colour override; absent = the kind's built-in palette */
+  color?: import('./furnitureColors').FurnitureColor;
   x: number;
   y: number;
   w: number;

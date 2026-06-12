@@ -47,6 +47,7 @@ export interface SceneFurniture {
   id: string;
   kind: FurnitureKind;
   name: string;
+  color?: import('./furnitureColors').FurnitureColor;
   /** rendered footprint (inset against flush walls) */
   box: Rect;
   height: number;
@@ -194,7 +195,7 @@ export function buildScene3D(
         const room = roomById.get(f.roomId);
         if (!room) return [];
         return [{
-          id: f.id, kind: f.kind, name: f.name,
+          id: f.id, kind: f.kind, name: f.name, color: f.color,
           box: insetAgainstWalls(f, polygonEdges(room.polygon)),
           height: KIND_HEIGHTS[f.kind],
           z0: z0.get(f.id) ?? 0,

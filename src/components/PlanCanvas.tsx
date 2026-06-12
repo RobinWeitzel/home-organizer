@@ -6,6 +6,7 @@ import {
   polygonEdges,
   rectInsideCells,
 } from '../model/cells';
+import { planTint } from '../model/furnitureColors';
 import { wallItemSegment } from '../model/geometry';
 import { type Projection } from '../model/iso';
 import { useApp } from '../model/store';
@@ -278,6 +279,7 @@ export default function PlanCanvas({
               height={f.h}
               rx={0.08}
               strokeWidth={0.05}
+              style={f.color && !invalid ? { fill: planTint(f.color) } : undefined}
             />
             <FurnitureDeco f={f} />
             {labelSize >= 0.13 && (

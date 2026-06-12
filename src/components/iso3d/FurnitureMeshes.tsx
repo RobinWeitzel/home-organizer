@@ -1,6 +1,7 @@
 // src/components/iso3d/FurnitureMeshes.tsx
 import { useMemo } from 'react';
 import { Color } from 'three';
+import { FURNITURE_COLORS, shiftColor } from '../../model/furnitureColors';
 import type { SceneFurniture } from '../../model/scene3d';
 import { buildFurnitureParts } from './furnitureParts';
 
@@ -19,10 +20,15 @@ function Piece({ f, highlighted, dimmed }: { f: SceneFurniture; highlighted: boo
   const facingX = f.box.h > f.box.w;
   const W = facingX ? f.box.h : f.box.w;
   const D = facingX ? f.box.w : f.box.h;
-  const parts = useMemo(
-    () => buildFurnitureParts(f.kind, W, D, f.height, f.id),
-    [f.kind, W, D, f.height, f.id],
-  );
+  const parts = useMemo(() => {
+    const built = buildFurnitureParts(f.kind, W, D, f.height, f.id);
+    if (!f.color) return built;
+    // re-tint relative to the palette's main colour (the first tintable part)
+    const ref = built.find((p) => !p.fixed)?.color;
+    if (!ref) return built;
+    const target = FURNITURE_COLORS[f.color].hex;
+    return built.map((p) => (p.fixed ? p : { ...p, color: shiftColor(p.color, ref, target) }));
+  }, [f.kind, W, D, f.height, f.id, f.color]);
   return (
     <group
       position={[f.box.x + f.box.w / 2, f.z0, f.box.y + f.box.h / 2]}

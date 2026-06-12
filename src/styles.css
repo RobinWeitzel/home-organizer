@@ -559,6 +559,34 @@ select {
   box-shadow: 0 0 0 1.5px var(--accent), var(--shadow);
 }
 
+.color-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 2px;
+}
+
+.color-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgb(0 0 0 / 0.18);
+  padding: 0;
+  cursor: pointer;
+}
+
+.color-dot-active {
+  outline: 2px solid var(--select);
+  outline-offset: 1px;
+}
+
+/* "kind default" swatch: a slashed blank dot */
+.color-dot-auto {
+  background:
+    linear-gradient(135deg, transparent 44%, var(--text-dim) 44% 56%, transparent 56%),
+    var(--surface);
+}
+
 .selbar .btn-small {
   background: transparent;
 }
