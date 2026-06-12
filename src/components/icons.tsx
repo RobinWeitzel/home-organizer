@@ -241,4 +241,45 @@ export const KIND_GLYPHS: Record<FurnitureKind, (p: P) => ReactNode> = {
       <path d="M 5 9 L 6.8 5 H 17.2 L 19 9 M 10.5 12 H 13.5" />
     </Icon>
   ),
+  desk: (p) => (
+    <Icon {...p}>
+      <path d="M 3.5 8.5 H 20.5 M 5 8.5 V 19 M 19 8.5 V 19" />
+      <path d="M 12.5 8.5 V 14.5 H 19 M 14.5 11.5 H 17" />
+    </Icon>
+  ),
+  table: (p) => (
+    <Icon {...p}>
+      <path d="M 3.5 9 H 20.5 M 6 9 L 5 19 M 18 9 L 19 19" />
+      <path d="M 9 9 L 8.7 13 H 15.3 L 15 9" />
+    </Icon>
+  ),
+  chair: (p) => (
+    <Icon {...p}>
+      <path d="M 7.5 4 V 20 M 7.5 13 H 16.5 V 20 M 7.5 5.5 H 16" />
+    </Icon>
+  ),
+  sofa: (p) => (
+    <Icon {...p}>
+      <path d="M 4.5 11 V 8.5 A 1.5 1.5 0 0 1 6 7 H 18 A 1.5 1.5 0 0 1 19.5 8.5 V 11" />
+      <path d="M 3.5 12.5 A 1.5 1.5 0 0 1 6.5 12.5 V 13.5 H 17.5 V 12.5 A 1.5 1.5 0 0 1 20.5 12.5 V 16 H 3.5 Z M 5 16 V 18 M 19 16 V 18" />
+    </Icon>
+  ),
+  bed: (p) => (
+    <Icon {...p}>
+      <path d="M 4 6 V 18 M 20 10 V 18 M 4 15.5 H 20 M 4 12.5 H 20" />
+      <path d="M 6 12.5 V 10.8 A 1 1 0 0 1 7 9.8 H 10 A 1 1 0 0 1 11 10.8 V 12.5" />
+    </Icon>
+  ),
+  tv: (p) => (
+    <Icon {...p}>
+      <rect x={4} y={5.5} width={16} height={10.5} rx={1} />
+      <path d="M 12 16 V 18.5 M 8.5 18.5 H 15.5" />
+    </Icon>
+  ),
+  bathtub: (p) => (
+    <Icon {...p}>
+      <path d="M 3.5 12 H 20.5 V 14 A 4 4 0 0 1 16.5 18 H 7.5 A 4 4 0 0 1 3.5 14 Z" />
+      <path d="M 6 12 V 6.5 A 1.5 1.5 0 0 1 9 6.5 M 6.5 18 L 6 20 M 17.5 18 L 18 20" />
+    </Icon>
+  ),
 };

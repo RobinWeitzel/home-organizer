@@ -19,6 +19,14 @@ const WOOD: Record<FurnitureKind, { body: string; face: string; plinth: string }
   // open shelving: faces are the dark interior, like the 3D back panel
   shelf: { body: '#96693f', face: '#5d3f26', plinth: '#7a5532' },
   other: { body: '#998878', face: '#a89786', plinth: '#7d6e5f' },
+  // furnishing rarely opens this sheet (no default areas) — sensible tones anyway
+  desk: { body: '#56402f', face: '#6e4f3a', plinth: '#463325' },
+  table: { body: '#6d5238', face: '#8a6a4a', plinth: '#594330' },
+  chair: { body: '#7a5a3e', face: '#8d6a48', plinth: '#634830' },
+  sofa: { body: '#67737e', face: '#7d8a96', plinth: '#545e67' },
+  bed: { body: '#6e4f3a', face: '#e8e4da', plinth: '#594030' },
+  tv: { body: '#1d2126', face: '#3b4654', plinth: '#15181c' },
+  bathtub: { body: '#d9d8d4', face: '#f2f1ee', plinth: '#b9b8b4' },
 };
 
 const HANDLE = '#e9e2d4';

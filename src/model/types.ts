@@ -1,4 +1,19 @@
-export type FurnitureKind = 'shelf' | 'dresser' | 'wardrobe' | 'cabinet' | 'chest' | 'other';
+export type FurnitureKind =
+  // storage furniture — spawns with default storage areas
+  | 'shelf'
+  | 'dresser'
+  | 'wardrobe'
+  | 'cabinet'
+  | 'chest'
+  | 'other'
+  // furnishing for visualisation — spawns without areas (they can be added)
+  | 'desk'
+  | 'table'
+  | 'chair'
+  | 'sofa'
+  | 'bed'
+  | 'tv'
+  | 'bathtub';
 
 export interface Rect {
   x: number;

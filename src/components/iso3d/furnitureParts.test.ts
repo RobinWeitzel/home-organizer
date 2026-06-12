@@ -3,7 +3,10 @@ import type { FurnitureKind } from '../../model/types';
 import { KIND_HEIGHTS } from '../../model/iso';
 import { buildFurnitureParts, PART_TOLERANCE } from './furnitureParts';
 
-const KINDS: FurnitureKind[] = ['shelf', 'dresser', 'wardrobe', 'cabinet', 'chest', 'other'];
+const KINDS: FurnitureKind[] = [
+  'shelf', 'dresser', 'wardrobe', 'cabinet', 'chest', 'other',
+  'desk', 'table', 'chair', 'sofa', 'bed', 'tv', 'bathtub',
+];
 
 describe('buildFurnitureParts', () => {
   it.each(KINDS)('%s is more than a single box and stays within its footprint', (kind) => {

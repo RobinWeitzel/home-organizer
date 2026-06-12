@@ -1,9 +1,7 @@
-import { KIND_LABELS } from '../model/store';
+import { FURNISHING_KINDS, KIND_LABELS, STORAGE_KINDS } from '../model/store';
 import type { FurnitureKind } from '../model/types';
 import { IconClose, IconDoor, IconOpening, IconRoom, IconWindow, KIND_GLYPHS } from './icons';
 import type { Tool } from './usePlanPointer';
-
-const KINDS = Object.keys(KIND_LABELS) as FurnitureKind[];
 
 /**
  * One-tap "add" menu: replaces the persistent tool bar. Picking an entry puts
@@ -47,9 +45,21 @@ export default function AddSheet({
               <span>Opening</span>
             </button>
           </div>
-          <div className="add-section">Furniture</div>
+          <div className="add-section">Storage furniture</div>
           <div className="add-grid">
-            {KINDS.map((k) => {
+            {STORAGE_KINDS.map((k) => {
+              const Glyph = KIND_GLYPHS[k];
+              return (
+                <button key={k} className="add-tile" onClick={() => onPick('furniture', k)}>
+                  <Glyph size={24} />
+                  <span>{KIND_LABELS[k]}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="add-section">Furnishing</div>
+          <div className="add-grid">
+            {FURNISHING_KINDS.map((k) => {
               const Glyph = KIND_GLYPHS[k];
               return (
                 <button key={k} className="add-tile" onClick={() => onPick('furniture', k)}>

@@ -2,7 +2,10 @@ import { polygonEdges } from './cells';
 import type { Pt, Rect, WallItem } from './types';
 
 export function snap(v: number, grid = 1): number {
-  return Math.round(v / grid) * grid;
+  // canonical 2-decimal double: grids are multiples of 0.01, but neither they
+  // nor their products are exact in binary — without this, snapped values
+  // like 2.0500000000000003 end up stored
+  return Math.round(Math.round(v / grid) * grid * 100) / 100;
 }
 
 export function normalizeRect(x1: number, y1: number, x2: number, y2: number, min = 1): Rect {

@@ -172,7 +172,8 @@ describe('furniture default sizes', () => {
     const { KIND_SIZES } = await import('./store');
     expect(KIND_SIZES.shelf).toEqual({ w: 0.8, h: 0.3 });
     expect(KIND_SIZES.dresser).toEqual({ w: 1, h: 0.5 });
-    expect(Object.keys(KIND_SIZES)).toHaveLength(6);
+    expect(Object.keys(KIND_SIZES)).toHaveLength(13);
+    expect(KIND_SIZES.bed).toEqual({ w: 1.6, h: 2 });
   });
 });
 

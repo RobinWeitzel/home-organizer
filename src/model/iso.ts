@@ -18,6 +18,13 @@ export const KIND_HEIGHTS: Record<FurnitureKind, number> = {
   cabinet: 0.9,
   chest: 0.5,
   other: 0.8,
+  desk: 0.74,
+  table: 0.74,
+  chair: 0.85,
+  sofa: 0.78,
+  bed: 0.9,
+  tv: 1.1,
+  bathtub: 0.55,
 };
 
 export interface Projection {
