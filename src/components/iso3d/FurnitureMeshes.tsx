@@ -25,7 +25,7 @@ function Piece({ f, highlighted, dimmed }: { f: SceneFurniture; highlighted: boo
   );
   return (
     <group
-      position={[f.box.x + f.box.w / 2, 0, f.box.y + f.box.h / 2]}
+      position={[f.box.x + f.box.w / 2, f.z0, f.box.y + f.box.h / 2]}
       rotation-y={facingX ? Math.PI / 2 : 0}
     >
       {parts.map((p) => (

@@ -3,6 +3,7 @@ import type { PointerEvent as ReactPointerEvent, RefObject, WheelEvent as ReactW
 import { GRID, pointInCells, polygonCells, polygonEdges, rectInsideCells, type CellSet, type PolyEdge } from '../model/cells';
 import { normalizeRect, snap, wallHitPolygon, wallItemSegment } from '../model/geometry';
 import { KIND_HEIGHTS, pointInLiftedRect, tapLiftRange, WALL_H, type Projection } from '../model/iso';
+import { furnitureZ0 } from '../model/scene3d';
 import { KIND_SIZES, MIN_WALL_ITEM_LENGTH, useApp, type Selection } from '../model/store';
 import type { Furniture, FurnitureKind, Rect, Room, WallItem } from '../model/types';
 
@@ -63,6 +64,15 @@ function floorRooms(): Room[] {
 function floorFurniture(): Furniture[] {
   const rooms = new Set(floorRooms().map((r) => r.id));
   return useApp.getState().data.furniture.filter((f) => rooms.has(f.roomId));
+}
+
+/** smallest pieces first, so something stacked on a bigger piece is tappable */
+function floorFurnitureByHit(): { f: Furniture; lift: number }[] {
+  const all = floorFurniture();
+  const z0 = furnitureZ0(all);
+  return all
+    .map((f) => ({ f, lift: (z0.get(f.id) ?? 0) + KIND_HEIGHTS[f.kind] }))
+    .sort((a, b) => a.f.w * a.f.h - b.f.w * b.f.h);
 }
 
 function floorWallItems(): WallItem[] {
@@ -214,10 +224,8 @@ export function usePlanPointer(opts: {
       if (seg && liftedHit(projection, w, (p) => distToSegment(p, seg.from, seg.to) <= 0.35))
         return { kind: 'wallItem', id: wi.id };
     }
-    const furn = [...floorFurniture()]
-      .reverse()
-      .find((f) => pointInLiftedRect(projection, w, f, KIND_HEIGHTS[f.kind]));
-    if (furn) return { kind: 'furniture', id: furn.id };
+    const furn = floorFurnitureByHit().find(({ f, lift }) => pointInLiftedRect(projection, w, f, lift));
+    if (furn) return { kind: 'furniture', id: furn.f.id };
     const room = [...floorRooms()].reverse().find((r) => pointInCells(w.x, w.y, polygonCells(r.polygon)));
     if (room) return { kind: 'room', id: room.id };
     return null;
@@ -479,17 +487,15 @@ export function usePlanPointer(opts: {
       // furniture only — door/window bands must not eat taps on wall-adjacent
       // pieces, and rooms aren't interactive here; small inset for fat fingers
       const pad = 0.08;
-      const furn = [...floorFurniture()]
-        .reverse()
-        .find((f) =>
-          pointInLiftedRect(
-            projection,
-            w,
-            { x: f.x - pad, y: f.y - pad, w: f.w + 2 * pad, h: f.h + 2 * pad },
-            KIND_HEIGHTS[f.kind],
-          ),
-        );
-      if (furn) onOpenFurniture(furn.id);
+      const furn = floorFurnitureByHit().find(({ f, lift }) =>
+        pointInLiftedRect(
+          projection,
+          w,
+          { x: f.x - pad, y: f.y - pad, w: f.w + 2 * pad, h: f.h + 2 * pad },
+          lift,
+        ),
+      );
+      if (furn) onOpenFurniture(furn.f.id);
       return;
     }
     if (tool === 'select') {

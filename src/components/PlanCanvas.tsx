@@ -203,7 +203,10 @@ export default function PlanCanvas({
     [rooms],
   );
   const roomIds = new Set(rooms.map((r) => r.id));
-  const furniture = data.furniture.filter((f) => roomIds.has(f.roomId));
+  // larger footprints first, so stacked pieces (TV on a lowboard) draw on top
+  const furniture = data.furniture
+    .filter((f) => roomIds.has(f.roomId))
+    .sort((a, b) => b.w * b.h - a.w * a.h);
   const wallItems = data.wallItems.filter((w) => roomIds.has(w.roomId));
 
   const vw = size.w / view.scale;

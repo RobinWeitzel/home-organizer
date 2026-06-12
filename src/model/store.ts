@@ -50,6 +50,7 @@ const DEFAULT_AREAS: Record<FurnitureKind, { prefix: string; count: number }> = 
   wardrobe: { prefix: 'Section', count: 2 },
   cabinet: { prefix: 'Shelf', count: 2 },
   chest: { prefix: 'Inside', count: 1 },
+  fridge: { prefix: 'Compartment', count: 2 },
   other: { prefix: 'Area', count: 1 },
   // furnishing: no storage by default, but areas can still be added (e.g.
   // under-bed boxes or a desk drawer)
@@ -59,12 +60,23 @@ const DEFAULT_AREAS: Record<FurnitureKind, { prefix: string; count: number }> = 
   sofa: { prefix: 'Area', count: 0 },
   bed: { prefix: 'Area', count: 0 },
   tv: { prefix: 'Area', count: 0 },
+  monitor: { prefix: 'Area', count: 0 },
+  counter: { prefix: 'Area', count: 0 },
+  stove: { prefix: 'Area', count: 0 },
+  sink: { prefix: 'Area', count: 0 },
+  washbasin: { prefix: 'Area', count: 0 },
+  toilet: { prefix: 'Area', count: 0 },
+  shower: { prefix: 'Area', count: 0 },
   bathtub: { prefix: 'Area', count: 0 },
+  plant: { prefix: 'Area', count: 0 },
 };
 
 /** storage kinds come first in pickers; the rest is furnishing */
-export const STORAGE_KINDS: FurnitureKind[] = ['shelf', 'dresser', 'wardrobe', 'cabinet', 'chest', 'other'];
-export const FURNISHING_KINDS: FurnitureKind[] = ['desk', 'table', 'chair', 'sofa', 'bed', 'tv', 'bathtub'];
+export const STORAGE_KINDS: FurnitureKind[] = ['shelf', 'dresser', 'wardrobe', 'cabinet', 'chest', 'fridge', 'other'];
+export const FURNISHING_KINDS: FurnitureKind[] = [
+  'desk', 'table', 'chair', 'sofa', 'bed', 'tv', 'monitor',
+  'counter', 'stove', 'sink', 'washbasin', 'toilet', 'shower', 'bathtub', 'plant',
+];
 
 export const KIND_LABELS: Record<FurnitureKind, string> = {
   shelf: 'Shelf',
@@ -72,6 +84,7 @@ export const KIND_LABELS: Record<FurnitureKind, string> = {
   wardrobe: 'Wardrobe',
   cabinet: 'Cabinet',
   chest: 'Chest',
+  fridge: 'Fridge',
   other: 'Storage',
   desk: 'Desk',
   table: 'Table',
@@ -79,7 +92,15 @@ export const KIND_LABELS: Record<FurnitureKind, string> = {
   sofa: 'Sofa',
   bed: 'Bed',
   tv: 'TV',
+  monitor: 'Monitor',
+  counter: 'Counter',
+  stove: 'Stove',
+  sink: 'Sink',
+  washbasin: 'Wash basin',
+  toilet: 'Toilet',
+  shower: 'Shower',
   bathtub: 'Bathtub',
+  plant: 'Plant',
 };
 
 /** Real-world spawn footprints in metres. */
@@ -89,6 +110,7 @@ export const KIND_SIZES: Record<FurnitureKind, { w: number; h: number }> = {
   wardrobe: { w: 1.2, h: 0.6 },
   cabinet: { w: 0.8, h: 0.4 },
   chest: { w: 0.9, h: 0.5 },
+  fridge: { w: 0.65, h: 0.65 },
   other: { w: 1, h: 0.5 },
   desk: { w: 1.2, h: 0.6 },
   table: { w: 1.4, h: 0.8 },
@@ -96,7 +118,15 @@ export const KIND_SIZES: Record<FurnitureKind, { w: number; h: number }> = {
   sofa: { w: 1.9, h: 0.85 },
   bed: { w: 1.6, h: 2 },
   tv: { w: 1.3, h: 0.3 },
+  monitor: { w: 0.55, h: 0.2 },
+  counter: { w: 0.6, h: 0.6 },
+  stove: { w: 0.6, h: 0.6 },
+  sink: { w: 0.6, h: 0.6 },
+  washbasin: { w: 0.55, h: 0.4 },
+  toilet: { w: 0.4, h: 0.65 },
+  shower: { w: 0.9, h: 0.9 },
   bathtub: { w: 1.7, h: 0.75 },
+  plant: { w: 0.35, h: 0.35 },
 };
 
 export const MIN_WALL_ITEM_LENGTH = 0.3;

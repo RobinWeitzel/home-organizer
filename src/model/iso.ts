@@ -17,6 +17,7 @@ export const KIND_HEIGHTS: Record<FurnitureKind, number> = {
   wardrobe: 2.0,
   cabinet: 0.9,
   chest: 0.5,
+  fridge: 1.8,
   other: 0.8,
   desk: 0.74,
   table: 0.74,
@@ -24,7 +25,15 @@ export const KIND_HEIGHTS: Record<FurnitureKind, number> = {
   sofa: 0.78,
   bed: 0.9,
   tv: 1.1,
+  monitor: 0.5,
+  counter: 0.9,
+  stove: 0.9,
+  sink: 0.9,
+  washbasin: 0.85,
+  toilet: 0.75,
+  shower: 2.0,
   bathtub: 0.55,
+  plant: 1.1,
 };
 
 export interface Projection {

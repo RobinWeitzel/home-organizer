@@ -257,7 +257,8 @@ export function buildFurnitureParts(
       return parts;
     }
 
-    case 'tv': {
+    case 'tv':
+    case 'monitor': {
       const metal = '#9aa3ad';
       const standH = H * 0.35;
       const screenD = Math.min(0.06, D * 0.4);
@@ -277,6 +278,130 @@ export function buildFurnitureParts(
         { key: 'basin', size: [Math.max(0.05, W - 2 * rim), 0.02, Math.max(0.05, D - 2 * rim)], pos: [0, H - 0.009, 0], color: '#cfe5ef' },
         { key: 'tap', size: [0.05, 0.07, 0.05], pos: [0, H - 0.005, -(D / 2 - rim / 2)], color: '#c9ccd1' },
       ];
+    }
+
+
+    case 'fridge': {
+      const body = '#eceae6';
+      const door = '#f4f2ee';
+      const split = H * 0.62; // freezer below, fridge above
+      return [
+        { key: 'body', size: [W, H, D], pos: [0, H / 2, 0], color: body },
+        { key: 'doorTop', size: [Math.max(0.08, W - 0.05), Math.max(0.06, H - split - 0.05), 0.028], pos: [0, split + (H - split) / 2, D / 2], color: door },
+        { key: 'doorBottom', size: [Math.max(0.08, W - 0.05), Math.max(0.06, split - 0.07), 0.028], pos: [0, split / 2 - 0.01, D / 2], color: door },
+        { key: 'handleTop', size: [0.028, Math.min(0.3, (H - split) * 0.5), 0.026], pos: [-(W / 2 - 0.07), split + (H - split) / 2, D / 2 + 0.024], color: '#c4c7cb' },
+        { key: 'handleBottom', size: [0.028, Math.min(0.25, split * 0.4), 0.026], pos: [-(W / 2 - 0.07), split / 2, D / 2 + 0.024], color: '#c4c7cb' },
+      ];
+    }
+
+    case 'counter':
+    case 'stove':
+    case 'sink': {
+      const body = '#e7e4de';
+      const worktop = kind === 'stove' ? '#3a3f45' : '#8d8780';
+      const parts: FurnPart[] = [
+        { key: 'body', size: [W, H - 0.04, D], pos: [0, (H - 0.04) / 2, 0], color: body },
+        { key: 'top', size: [W + 0.03, 0.04, D + 0.03], pos: [0, H - 0.02, 0], color: worktop },
+        { key: 'plinth', size: [Math.max(0.05, W - 0.06), 0.07, Math.max(0.05, D - 0.06)], pos: [0, 0.035, 0.01], color: '#b9b4ac' },
+      ];
+      if (kind === 'stove') {
+        const bx = Math.min(0.16, W * 0.24);
+        const bz = Math.min(0.16, D * 0.24);
+        const burner = Math.max(0.05, Math.min(0.14, Math.min(W, D) * 0.26));
+        for (const [i, [sx, sz]] of [[-1, -1], [1, -1], [-1, 1], [1, 1]].entries()) {
+          parts.push({
+            key: `burner${i}`,
+            size: [burner, 0.014, burner],
+            pos: [sx * bx, H + 0.007, sz * bz],
+            color: '#15181b',
+          });
+        }
+        parts.push({
+          key: 'ovenDoor',
+          size: [Math.max(0.08, W - 0.1), Math.max(0.08, H * 0.45), 0.024],
+          pos: [0, H * 0.38, D / 2],
+          color: '#2c3137',
+        });
+      }
+      if (kind === 'sink') {
+        parts.push({
+          key: 'basin',
+          size: [Math.max(0.05, W - 0.18), 0.016, Math.max(0.05, D - 0.18)],
+          pos: [0, H + 0.008, 0],
+          color: '#b9bec4',
+        });
+        parts.push({ key: 'tap', size: [0.045, 0.06, 0.045], pos: [0, H, -(D / 2 - 0.09)], color: '#c9ccd1' });
+      }
+      if (kind === 'counter') {
+        // drawer fronts so a counter run reads as kitchen cabinets
+        parts.push({
+          key: 'drawer',
+          size: [Math.max(0.08, W - 0.08), Math.max(0.05, (H - 0.04) * 0.18), 0.022],
+          pos: [0, H * 0.72, D / 2],
+          color: '#dfdbd3',
+        });
+        parts.push({
+          key: 'doorFront',
+          size: [Math.max(0.08, W - 0.08), Math.max(0.08, (H - 0.04) * 0.5), 0.022],
+          pos: [0, H * 0.34, D / 2],
+          color: '#dfdbd3',
+        });
+      }
+      return parts;
+    }
+
+    case 'washbasin': {
+      return [
+        { key: 'pedestal', size: [Math.max(0.06, W * 0.28), H - 0.12, Math.max(0.06, D * 0.32)], pos: [0, (H - 0.12) / 2, -(D * 0.05)], color: '#e8e7e4' },
+        { key: 'basin', size: [W, 0.12, D], pos: [0, H - 0.06, 0], color: '#f2f1ee' },
+        { key: 'bowl', size: [Math.max(0.05, W - 0.12), 0.014, Math.max(0.05, D - 0.12)], pos: [0, H + 0.007 - 0.012, 0.01], color: '#dfe9ee' },
+        { key: 'tap', size: [0.04, 0.05, 0.04], pos: [0, H + 0.005, -(D / 2 - 0.06)], color: '#c9ccd1' },
+      ];
+    }
+
+    case 'toilet': {
+      const tankD = Math.min(0.16, D * 0.3);
+      const seatH = H * 0.55;
+      return [
+        { key: 'tank', size: [Math.max(0.08, W - 0.06), H - 0.06, tankD], pos: [0, (H - 0.06) / 2, -(D / 2 - tankD / 2)], color: '#f2f1ee' },
+        { key: 'lid', size: [Math.max(0.08, W - 0.04), 0.03, tankD + 0.02], pos: [0, H - 0.045, -(D / 2 - tankD / 2)], color: '#e8e7e4' },
+        { key: 'bowl', size: [Math.max(0.08, W - 0.08), seatH, Math.max(0.08, D - tankD - 0.06)], pos: [0, seatH / 2, tankD / 2 + 0.01], color: '#f2f1ee' },
+        { key: 'seat', size: [Math.max(0.08, W - 0.06), 0.025, Math.max(0.08, D - tankD - 0.04)], pos: [0, seatH + 0.0125, tankD / 2 + 0.01], color: '#fbfaf8' },
+      ];
+    }
+
+    case 'shower': {
+      const glass = '#cfe0ea';
+      const trayH = 0.06;
+      return [
+        { key: 'tray', size: [W, trayH, D], pos: [0, trayH / 2, 0], color: '#e8e7e4' },
+        // glass on the two open sides; the other two stand at walls
+        { key: 'glassFront', size: [W, H - trayH - 0.15, 0.018], pos: [0, trayH + (H - trayH - 0.15) / 2, D / 2 - 0.009], color: glass },
+        { key: 'glassRight', size: [0.018, H - trayH - 0.15, D], pos: [W / 2 - 0.009, trayH + (H - trayH - 0.15) / 2, 0], color: glass },
+        { key: 'riser', size: [0.035, H - trayH, 0.035], pos: [-(W / 2 - 0.05), (H + trayH) / 2 - 0.03, -(D / 2 - 0.05)], color: '#c9ccd1' },
+        { key: 'head', size: [0.14, 0.02, 0.14], pos: [-(W / 2 - 0.14), H - 0.05, -(D / 2 - 0.14)], color: '#c9ccd1' },
+      ];
+    }
+
+    case 'plant': {
+      const rnd = hash(seed);
+      const potH = H * 0.28;
+      const parts: FurnPart[] = [
+        { key: 'pot', size: [W * 0.62, potH, D * 0.62], pos: [0, potH / 2, 0], color: '#a96a48' },
+        { key: 'soil', size: [W * 0.5, 0.02, D * 0.5], pos: [0, potH - 0.005, 0], color: '#4a3a2c' },
+        { key: 'stem', size: [0.03, H * 0.4, 0.03], pos: [0, potH + H * 0.2, 0], color: '#5a4632' },
+      ];
+      const GREENS = ['#5d8a4f', '#6f9c5e', '#4f7a43'];
+      for (let i = 0; i < 3; i++) {
+        const size = (0.9 - i * 0.22) * Math.min(W, D);
+        parts.push({
+          key: `leaf${i}`,
+          size: [size, H * 0.18, size],
+          pos: [(rnd() - 0.5) * 0.05, potH + H * (0.22 + i * 0.17), (rnd() - 0.5) * 0.05],
+          color: GREENS[i % GREENS.length],
+        });
+      }
+      return parts;
     }
 
     default: {

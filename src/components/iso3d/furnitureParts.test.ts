@@ -4,8 +4,9 @@ import { KIND_HEIGHTS } from '../../model/iso';
 import { buildFurnitureParts, PART_TOLERANCE } from './furnitureParts';
 
 const KINDS: FurnitureKind[] = [
-  'shelf', 'dresser', 'wardrobe', 'cabinet', 'chest', 'other',
-  'desk', 'table', 'chair', 'sofa', 'bed', 'tv', 'bathtub',
+  'shelf', 'dresser', 'wardrobe', 'cabinet', 'chest', 'fridge', 'other',
+  'desk', 'table', 'chair', 'sofa', 'bed', 'tv', 'monitor',
+  'counter', 'stove', 'sink', 'washbasin', 'toilet', 'shower', 'bathtub', 'plant',
 ];
 
 describe('buildFurnitureParts', () => {

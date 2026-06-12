@@ -44,6 +44,20 @@ describe('buildScene3D', () => {
     }
   });
 
+  it('stacks furniture whose footprint sits inside a larger piece', () => {
+    const f = (id: string, kind: Furniture['kind'], x: number, y: number, w: number, h: number): Furniture => ({
+      id, roomId: 'r1', kind, name: id, x, y, w, h,
+    });
+    const cabinet = f('cab', 'cabinet', 1, 1, 1.5, 0.4);   // H 0.9
+    const tv = f('tv', 'tv', 1.1, 1.05, 1.3, 0.3);         // inside the cabinet
+    const aside = f('aside', 'chair', 3, 3, 0.45, 0.45);   // elsewhere
+    const s = buildScene3D([room('r1', 0, 0, 6, 6)], [], [cabinet, tv, aside]);
+    const byId = Object.fromEntries(s.furniture.map((x) => [x.id, x]));
+    expect(byId.cab.z0).toBe(0);
+    expect(byId.tv.z0).toBeCloseTo(0.9); // standing on the cabinet
+    expect(byId.aside.z0).toBe(0);
+  });
+
   it('flips the door hinge side and swing direction', () => {
     const rooms = [room('r1', 0, 0, 4, 4)];
     // edge 1 runs (4,0)->(4,4); inward is -x

@@ -26,7 +26,16 @@ const WOOD: Record<FurnitureKind, { body: string; face: string; plinth: string }
   sofa: { body: '#67737e', face: '#7d8a96', plinth: '#545e67' },
   bed: { body: '#6e4f3a', face: '#e8e4da', plinth: '#594030' },
   tv: { body: '#1d2126', face: '#3b4654', plinth: '#15181c' },
+  monitor: { body: '#1d2126', face: '#3b4654', plinth: '#15181c' },
+  fridge: { body: '#d9d7d2', face: '#f4f2ee', plinth: '#b9b7b2' },
+  counter: { body: '#c9c4bb', face: '#e7e4de', plinth: '#a8a49c' },
+  stove: { body: '#c9c4bb', face: '#3a3f45', plinth: '#a8a49c' },
+  sink: { body: '#c9c4bb', face: '#b9bec4', plinth: '#a8a49c' },
+  washbasin: { body: '#d9d8d4', face: '#f2f1ee', plinth: '#b9b8b4' },
+  toilet: { body: '#d9d8d4', face: '#f2f1ee', plinth: '#b9b8b4' },
+  shower: { body: '#b9c6ce', face: '#cfe0ea', plinth: '#9aa6ad' },
   bathtub: { body: '#d9d8d4', face: '#f2f1ee', plinth: '#b9b8b4' },
+  plant: { body: '#a96a48', face: '#5d8a4f', plinth: '#8a5538' },
 };
 
 const HANDLE = '#e9e2d4';

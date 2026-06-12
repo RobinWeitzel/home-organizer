@@ -50,7 +50,36 @@ export interface SceneFurniture {
   /** rendered footprint (inset against flush walls) */
   box: Rect;
   height: number;
+  /** floor offset: pieces whose footprint sits inside another piece stand on it */
+  z0: number;
   invalid: boolean;
+}
+
+/**
+ * Stacking: a piece whose footprint lies fully inside a strictly larger
+ * piece in the same room stands on top of it (TV on a lowboard, monitor on
+ * a desk). Chains resolve largest-first.
+ */
+export function furnitureZ0(furniture: Furniture[]): Map<string, number> {
+  const eps = 1e-6;
+  const contains = (a: Furniture, b: Furniture) =>
+    a.roomId === b.roomId &&
+    a.w * a.h > b.w * b.h + eps &&
+    a.x <= b.x + eps &&
+    a.y <= b.y + eps &&
+    a.x + a.w >= b.x + b.w - eps &&
+    a.y + a.h >= b.y + b.h - eps;
+  const byAreaDesc = [...furniture].sort((p, q) => q.w * q.h - p.w * p.h);
+  const z0 = new Map<string, number>();
+  for (const f of byAreaDesc) {
+    let z = 0;
+    for (const other of byAreaDesc) {
+      if (other.id === f.id) continue;
+      if (contains(other, f)) z = Math.max(z, (z0.get(other.id) ?? 0) + KIND_HEIGHTS[other.kind]);
+    }
+    z0.set(f.id, z);
+  }
+  return z0;
 }
 
 export interface Scene3D {
@@ -159,15 +188,19 @@ export function buildScene3D(
     doors,
     windows: [...windowByKey.values()],
     openings,
-    furniture: furniture.flatMap((f) => {
-      const room = roomById.get(f.roomId);
-      if (!room) return [];
-      return [{
-        id: f.id, kind: f.kind, name: f.name,
-        box: insetAgainstWalls(f, polygonEdges(room.polygon)),
-        height: KIND_HEIGHTS[f.kind],
-        invalid: opts.invalidFurnitureIds?.has(f.id) ?? false,
-      }];
-    }),
+    furniture: (() => {
+      const z0 = furnitureZ0(furniture);
+      return furniture.flatMap((f) => {
+        const room = roomById.get(f.roomId);
+        if (!room) return [];
+        return [{
+          id: f.id, kind: f.kind, name: f.name,
+          box: insetAgainstWalls(f, polygonEdges(room.polygon)),
+          height: KIND_HEIGHTS[f.kind],
+          z0: z0.get(f.id) ?? 0,
+          invalid: opts.invalidFurnitureIds?.has(f.id) ?? false,
+        }];
+      });
+    })(),
   };
 }

@@ -5,6 +5,7 @@ export type FurnitureKind =
   | 'wardrobe'
   | 'cabinet'
   | 'chest'
+  | 'fridge'
   | 'other'
   // furnishing for visualisation — spawns without areas (they can be added)
   | 'desk'
@@ -13,7 +14,15 @@ export type FurnitureKind =
   | 'sofa'
   | 'bed'
   | 'tv'
-  | 'bathtub';
+  | 'monitor'
+  | 'counter'
+  | 'stove'
+  | 'sink'
+  | 'washbasin'
+  | 'toilet'
+  | 'shower'
+  | 'bathtub'
+  | 'plant';
 
 export interface Rect {
   x: number;

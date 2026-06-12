@@ -282,4 +282,65 @@ export const KIND_GLYPHS: Record<FurnitureKind, (p: P) => ReactNode> = {
       <path d="M 6 12 V 6.5 A 1.5 1.5 0 0 1 9 6.5 M 6.5 18 L 6 20 M 17.5 18 L 18 20" />
     </Icon>
   ),
+  fridge: (p) => (
+    <Icon {...p}>
+      <rect x={6.5} y={3.5} width={11} height={17} rx={1} />
+      <path d="M 6.5 10 H 17.5 M 9 6 V 8 M 9 12.5 V 15.5" />
+    </Icon>
+  ),
+  monitor: (p) => (
+    <Icon {...p}>
+      <rect x={4.5} y={5.5} width={15} height={9.5} rx={1} />
+      <path d="M 12 15 V 17.5 M 8.5 19.5 H 15.5 M 12 17.5 L 8.5 19.5 M 12 17.5 L 15.5 19.5" />
+    </Icon>
+  ),
+  counter: (p) => (
+    <Icon {...p}>
+      <path d="M 3.5 7 H 20.5" strokeWidth={2.4} />
+      <rect x={5} y={9.5} width={14} height={10.5} rx={1} />
+      <path d="M 5 13 H 19 M 11 11.2 H 13" />
+    </Icon>
+  ),
+  stove: (p) => (
+    <Icon {...p}>
+      <rect x={4.5} y={4.5} width={15} height={15} rx={1} />
+      <circle cx={9} cy={9} r={1.8} />
+      <circle cx={15} cy={9} r={1.8} />
+      <circle cx={9} cy={15} r={1.8} />
+      <circle cx={15} cy={15} r={1.8} />
+    </Icon>
+  ),
+  sink: (p) => (
+    <Icon {...p}>
+      <rect x={4.5} y={8} width={15} height={11} rx={1.5} />
+      <rect x={7} y={10.5} width={10} height={6} rx={1.2} />
+      <path d="M 12 8 V 5 H 15.5" />
+    </Icon>
+  ),
+  washbasin: (p) => (
+    <Icon {...p}>
+      <path d="M 4.5 9 H 19.5 V 10.5 A 7.5 5.5 0 0 1 4.5 10.5 Z" />
+      <path d="M 10 15.5 H 14 L 13 20 H 11 Z M 12 9 V 6" />
+    </Icon>
+  ),
+  toilet: (p) => (
+    <Icon {...p}>
+      <rect x={7} y={3.5} width={10} height={5} rx={1} />
+      <path d="M 8 8.5 H 16 V 12 A 4 4.5 0 0 1 8 12 Z" />
+      <path d="M 9.5 17.5 A 4.5 4 0 0 0 14.5 17.5" />
+    </Icon>
+  ),
+  shower: (p) => (
+    <Icon {...p}>
+      <rect x={4.5} y={4.5} width={15} height={15} rx={1} />
+      <path d="M 4.5 19.5 L 19.5 4.5" strokeDasharray="2 1.6" />
+      <circle cx={8.5} cy={8.5} r={1.6} />
+    </Icon>
+  ),
+  plant: (p) => (
+    <Icon {...p}>
+      <path d="M 8 15 H 16 L 15 20 H 9 Z" />
+      <path d="M 12 15 V 9 M 12 11 C 9 11 7.5 9 7.5 6.5 C 10.5 6.5 12 8.5 12 11 M 12 9 C 12 6.5 13.5 4.5 16.5 4.5 C 16.5 7 15 9 12 9" />
+    </Icon>
+  ),
 };
