@@ -184,7 +184,7 @@ export default function PlanCanvas({
               {r.name}
             </text>
             <text className="area-label" x={geo.centroid.x} y={geo.centroid.y + 0.38} textAnchor="middle">
-              {geo.area} m²
+              {Math.round(geo.area * 10) / 10} m²
             </text>
           </g>
         );

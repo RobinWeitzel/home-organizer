@@ -51,6 +51,16 @@ describe('addRoomRect', () => {
     expect(s().data.rooms[1].polygon).toEqual(rectPolygon(4, 0, 2, 4));
   });
 
+  it('keeps quarter-metre precision', () => {
+    s().addFloor('G');
+    s().addRoomRect(s().currentFloorId!, { x: 0.25, y: 0.5, w: 3.25, h: 2.75 });
+    expect(s().data.rooms[0].polygon).toEqual(rectPolygon(0.25, 0.5, 3.25, 2.75));
+    const room = s().data.rooms[0];
+    // a 0.25 m notch is a legal carve now
+    expect(s().applyRoomShape(room.id, 'carve', { x: 0.25, y: 0.5, w: 0.25, h: 0.25 })).toBe(true);
+    expect(s().data.rooms[0].polygon).toHaveLength(6);
+  });
+
   it('ignores a rect fully covered by another room', () => {
     s().addFloor('G');
     const floorId = s().currentFloorId!;
@@ -312,7 +322,8 @@ describe('furniture, areas, items (unchanged behaviour)', () => {
 
   it('roomCells exposes the cell set for hit tests', () => {
     const { room } = buildHouse();
-    expect(s().roomCells(room.id).size).toBe(24);
+    // 6x4 m room at 16 quarter-metre cells per m²
+    expect(s().roomCells(room.id).size).toBe(24 * 16);
   });
 });
 

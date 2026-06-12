@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent, RefObject, WheelEvent as ReactWheelEvent } from 'react';
-import { pointInCells, polygonCells, polygonEdges, rectInsideCells, type CellSet, type PolyEdge } from '../model/cells';
+import { GRID, pointInCells, polygonCells, polygonEdges, rectInsideCells, type CellSet, type PolyEdge } from '../model/cells';
 import { normalizeRect, snap, wallHitPolygon, wallItemSegment } from '../model/geometry';
 import { KIND_HEIGHTS, pointInLiftedRect, tapLiftRange, WALL_H, type Projection } from '../model/iso';
 import { KIND_SIZES, MIN_WALL_ITEM_LENGTH, useApp, type Selection } from '../model/store';
@@ -356,12 +356,14 @@ export function usePlanPointer(opts: {
     }
     if (g.type === 'draw') {
       if (!moved.current) return;
-      setGhost(normalizeRect(snap(g.startW.x), snap(g.startW.y), snap(w.x), snap(w.y)));
+      setGhost(
+        normalizeRect(snap(g.startW.x, GRID), snap(g.startW.y, GRID), snap(w.x, GRID), snap(w.y, GRID), GRID),
+      );
       return;
     }
     if (g.type === 'move-room' && moved.current) {
-      const dx = snap(w.x - g.startW.x);
-      const dy = snap(w.y - g.startW.y);
+      const dx = snap(w.x - g.startW.x, GRID);
+      const dy = snap(w.y - g.startW.y, GRID);
       if ((dx !== 0 || dy !== 0) && store.moveRoom(g.roomId, dx, dy)) {
         gesture.current = { ...g, startW: { x: g.startW.x + dx, y: g.startW.y + dy } };
       }
@@ -412,11 +414,12 @@ export function usePlanPointer(opts: {
       return;
     }
     if (g.type === 'edge-drag' && moved.current) {
-      // outward displacement of the pointer relative to the drag start
+      // outward displacement of the pointer relative to the drag start,
+      // applied one grid-step strip at a time
       const outward = { x: -g.inward.x, y: -g.inward.y };
       const d = (w.x - g.startW.x) * outward.x + (w.y - g.startW.y) * outward.y;
       const state = { a: g.a, b: g.b, applied: g.applied };
-      let steps = Math.round(d) - state.applied;
+      let steps = Math.round(d / GRID) - state.applied;
       while (steps !== 0) {
         const dir = Math.sign(steps);
         const grow = dir > 0; // outward strip = extend, inward strip = carve
@@ -425,13 +428,13 @@ export function usePlanPointer(opts: {
         const span = horizontal ? Math.abs(state.b.x - state.a.x) : Math.abs(state.b.y - state.a.y);
         const stripDir = grow ? outward : g.inward;
         const line = horizontal ? state.a.y : state.a.x;
-        const stripLine = line + (stripDir.x < 0 || stripDir.y < 0 ? -1 : 0);
+        const stripLine = line + (stripDir.x < 0 || stripDir.y < 0 ? -GRID : 0);
         const rect: Rect = horizontal
-          ? { x: lo, y: stripLine, w: span, h: 1 }
-          : { x: stripLine, y: lo, w: 1, h: span };
+          ? { x: lo, y: stripLine, w: span, h: GRID }
+          : { x: stripLine, y: lo, w: GRID, h: span };
         if (!store.applyRoomShape(g.roomId, grow ? 'extend' : 'carve', rect)) break;
-        state.a = { x: state.a.x + stripDir.x, y: state.a.y + stripDir.y };
-        state.b = { x: state.b.x + stripDir.x, y: state.b.y + stripDir.y };
+        state.a = { x: state.a.x + stripDir.x * GRID, y: state.a.y + stripDir.y * GRID };
+        state.b = { x: state.b.x + stripDir.x * GRID, y: state.b.y + stripDir.y * GRID };
         state.applied += dir;
         steps -= dir;
       }

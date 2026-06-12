@@ -2,10 +2,16 @@ import type { Rect } from './types';
 
 /**
  * Grid-cell geometry for rectilinear room shapes.
- * A shape is a set of unit cells keyed "x,y"; its canonical stored form is the
- * clockwise (screen coords, y down) outline polygon produced by traceOutline.
+ * A shape is a set of GRID-sized cells keyed "x,y" in grid units; the public
+ * API speaks metres throughout. The canonical stored form is the clockwise
+ * (screen coords, y down) outline polygon produced by traceOutline, also in
+ * metres. GRID is a negative power of two, so every snapped coordinate and
+ * the metres↔grid conversions are exact in floating point.
  */
 export type CellSet = Set<string>;
+
+/** room-drawing resolution in metres */
+export const GRID = 0.25;
 
 export interface Pt {
   x: number;
@@ -22,10 +28,10 @@ const EPS = 1e-9;
 
 export function rectCells(rect: Rect): CellSet {
   const cells: CellSet = new Set();
-  const x0 = Math.round(rect.x);
-  const y0 = Math.round(rect.y);
-  for (let x = x0; x < x0 + Math.round(rect.w); x++) {
-    for (let y = y0; y < y0 + Math.round(rect.h); y++) {
+  const x0 = Math.round(rect.x / GRID);
+  const y0 = Math.round(rect.y / GRID);
+  for (let x = x0; x < x0 + Math.round(rect.w / GRID); x++) {
+    for (let y = y0; y < y0 + Math.round(rect.h / GRID); y++) {
       cells.add(key(x, y));
     }
   }
@@ -69,7 +75,8 @@ export function isConnected(cells: CellSet): boolean {
   return seen.size === cells.size;
 }
 
-export function boundsOfCells(cells: CellSet): Rect {
+/** bounds in grid units, for the flood fill */
+function gridBounds(cells: CellSet): Rect {
   let minX = Infinity,
     minY = Infinity,
     maxX = -Infinity,
@@ -84,9 +91,14 @@ export function boundsOfCells(cells: CellSet): Rect {
   return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
+export function boundsOfCells(cells: CellSet): Rect {
+  const b = gridBounds(cells);
+  return { x: b.x * GRID, y: b.y * GRID, w: b.w * GRID, h: b.h * GRID };
+}
+
 export function hasHole(cells: CellSet): boolean {
   if (cells.size === 0) return false;
-  const b = boundsOfCells(cells);
+  const b = gridBounds(cells);
   const x0 = b.x - 1,
     y0 = b.y - 1,
     x1 = b.x + b.w,
@@ -173,13 +185,14 @@ export function traceOutline(cells: CellSet): Pt[] {
     const collinear = (prev.x === p.x && p.x === next.x) || (prev.y === p.y && p.y === next.y);
     if (!collinear) merged.push(p);
   }
-  return merged;
+  return merged.map((p) => ({ x: p.x * GRID, y: p.y * GRID }));
 }
 
-/** Scanline fill of a rectilinear polygon back into cells (inverse of traceOutline). */
-export function polygonCells(polygon: Pt[]): CellSet {
+/** Scanline fill of a rectilinear polygon (metres) back into cells (inverse of traceOutline). */
+export function polygonCells(polygonM: Pt[]): CellSet {
   const cells: CellSet = new Set();
-  if (polygon.length < 4) return cells;
+  if (polygonM.length < 4) return cells;
+  const polygon = polygonM.map((p) => ({ x: Math.round(p.x / GRID), y: Math.round(p.y / GRID) }));
   const ys = polygon.map((p) => p.y);
   const minY = Math.min(...ys);
   const maxY = Math.max(...ys);
@@ -223,13 +236,13 @@ export function polygonEdges(polygon: Pt[]): PolyEdge[] {
   });
 }
 
-/** True if every unit cell the rect's interior touches belongs to the set. */
+/** True if every cell the rect's (metres) interior touches belongs to the set. */
 export function rectInsideCells(rect: Rect, cells: CellSet): boolean {
   if (rect.w <= 0 || rect.h <= 0) return false;
-  const x0 = Math.floor(rect.x + EPS);
-  const x1 = Math.ceil(rect.x + rect.w - EPS) - 1;
-  const y0 = Math.floor(rect.y + EPS);
-  const y1 = Math.ceil(rect.y + rect.h - EPS) - 1;
+  const x0 = Math.floor(rect.x / GRID + EPS);
+  const x1 = Math.ceil((rect.x + rect.w) / GRID - EPS) - 1;
+  const y0 = Math.floor(rect.y / GRID + EPS);
+  const y1 = Math.ceil((rect.y + rect.h) / GRID - EPS) - 1;
   for (let x = x0; x <= x1; x++) {
     for (let y = y0; y <= y1; y++) {
       if (!cells.has(key(x, y))) return false;
@@ -239,11 +252,12 @@ export function rectInsideCells(rect: Rect, cells: CellSet): boolean {
 }
 
 export function pointInCells(px: number, py: number, cells: CellSet): boolean {
-  return cells.has(key(Math.floor(px), Math.floor(py)));
+  return cells.has(key(Math.floor(px / GRID), Math.floor(py / GRID)));
 }
 
+/** area in m² */
 export function areaOfCells(cells: CellSet): number {
-  return cells.size;
+  return cells.size * GRID * GRID;
 }
 
 export function centroidOfCells(cells: CellSet): Pt {
@@ -251,8 +265,8 @@ export function centroidOfCells(cells: CellSet): Pt {
     sy = 0;
   for (const k of cells) {
     const { x, y } = parse(k);
-    sx += x + 0.5;
-    sy += y + 0.5;
+    sx += (x + 0.5) * GRID;
+    sy += (y + 0.5) * GRID;
   }
   return cells.size ? { x: sx / cells.size, y: sy / cells.size } : { x: 0, y: 0 };
 }

@@ -21,24 +21,34 @@ const rect = (x: number, y: number, w: number, h: number) => ({ x, y, w, h });
 const lShape = () => subtract(rectCells(rect(0, 0, 4, 3)), rectCells(rect(2, 0, 2, 1)));
 
 describe('rectCells', () => {
-  it('produces one cell per grid unit', () => {
-    expect(rectCells(rect(1, 2, 3, 2)).size).toBe(6);
-    expect(rectCells(rect(1, 2, 3, 2)).has('3,3')).toBe(true);
-    expect(rectCells(rect(1, 2, 3, 2)).has('4,3')).toBe(false);
+  it('produces 16 quarter-metre cells per m²', () => {
+    expect(rectCells(rect(1, 2, 3, 2)).size).toBe(6 * 16);
+    expect(pointInCells(3.9, 3.9, rectCells(rect(1, 2, 3, 2)))).toBe(true);
+    expect(pointInCells(4.1, 3.9, rectCells(rect(1, 2, 3, 2)))).toBe(false);
+  });
+
+  it('resolves quarter-metre rects', () => {
+    expect(rectCells(rect(0, 0, 0.5, 0.75)).size).toBe(2 * 3);
+    expect(traceOutline(rectCells(rect(0.25, 0.5, 0.5, 0.25)))).toEqual([
+      { x: 0.25, y: 0.5 },
+      { x: 0.75, y: 0.5 },
+      { x: 0.75, y: 0.75 },
+      { x: 0.25, y: 0.75 },
+    ]);
   });
 });
 
 describe('union / subtract', () => {
   it('unions overlapping rects without double counting', () => {
     const u = union(rectCells(rect(0, 0, 2, 2)), rectCells(rect(1, 0, 2, 2)));
-    expect(u.size).toBe(6);
+    expect(u.size).toBe(6 * 16);
   });
 
   it('subtract removes covered cells only', () => {
     const s = subtract(rectCells(rect(0, 0, 3, 3)), rectCells(rect(1, 1, 5, 5)));
-    expect(s.size).toBe(5);
-    expect(s.has('0,0')).toBe(true);
-    expect(s.has('1,1')).toBe(false);
+    expect(s.size).toBe(5 * 16);
+    expect(pointInCells(0.5, 0.5, s)).toBe(true);
+    expect(pointInCells(1.5, 1.5, s)).toBe(false);
   });
 });
 
