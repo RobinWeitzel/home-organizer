@@ -499,10 +499,11 @@ select {
   top: 64px;
 }
 
-/* structure / furniture segmented switch — keeps the two edit layers apart */
+/* structure / furniture segmented switch — keeps the two edit layers apart.
+ * sits on its own row below the floor pill so the two never overlap */
 .layer-toggle {
   position: absolute;
-  top: 10px;
+  top: 58px;
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
