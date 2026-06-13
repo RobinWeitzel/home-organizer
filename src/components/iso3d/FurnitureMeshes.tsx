@@ -20,15 +20,16 @@ function Piece({ f, highlighted, dimmed }: { f: SceneFurniture; highlighted: boo
   const sideways = f.facing % 2 === 1;
   const W = sideways ? f.box.h : f.box.w;
   const D = sideways ? f.box.w : f.box.h;
+  const stacked = f.z0 > 1e-6;
   const parts = useMemo(() => {
-    const built = buildFurnitureParts(f.kind, W, D, f.height, f.id);
+    const built = buildFurnitureParts(f.kind, W, D, f.height, f.id, stacked);
     if (!f.color) return built;
     // re-tint relative to the palette's main colour (the first tintable part)
     const ref = built.find((p) => !p.fixed)?.color;
     if (!ref) return built;
     const target = FURNITURE_COLORS[f.color].hex;
     return built.map((p) => (p.fixed ? p : { ...p, color: shiftColor(p.color, ref, target) }));
-  }, [f.kind, W, D, f.height, f.id, f.color]);
+  }, [f.kind, W, D, f.height, f.id, f.color, stacked]);
   return (
     <group
       position={[f.box.x + f.box.w / 2, f.z0, f.box.y + f.box.h / 2]}

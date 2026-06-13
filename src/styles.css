@@ -499,6 +499,39 @@ select {
   top: 64px;
 }
 
+/* structure / furniture segmented switch — keeps the two edit layers apart */
+.layer-toggle {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 999px;
+  background: var(--glass);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  box-shadow: 0 0 0 1px var(--glass-edge), var(--shadow);
+  z-index: 5;
+}
+
+.layer-toggle button {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.layer-toggle button.active {
+  background: var(--accent);
+  color: #fff;
+}
+
 .hint-pill {
   position: absolute;
   top: 10px;

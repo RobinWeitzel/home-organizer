@@ -2,7 +2,7 @@
 import { polygonEdges } from './cells';
 import { wallItemSegment } from './geometry';
 import {
-  buildWallLines, DOOR_H, insetAgainstWalls, KIND_HEIGHTS, mergeCollinearGaps,
+  buildWallLines, DOOR_H, DOOR_HEAD, insetAgainstWalls, KIND_HEIGHTS, mergeCollinearGaps,
   SILL_H, WALL_H, WALL_T, WINDOW_TOP,
 } from './iso';
 import type { Furniture, FurnitureKind, Pt, Rect, Room, WallItem } from './types';
@@ -160,12 +160,19 @@ export function buildScene3D(
       });
     } else {
       const gap = mergeCollinearGaps({ from: seg.from, to: seg.to }, doorGaps);
+      const doorH = Math.min(DOOR_H, Math.max(0.4, WALL_H - DOOR_HEAD));
+      // lintel: refill the wall above the leaf so the door reads as framed and
+      // its top edge can't poke through the jambs
+      if (WALL_H > doorH + 1e-6) {
+        const r = strip(seg.from, seg.to);
+        wallBoxes.push({ ...r, z0: doorH, height: WALL_H - doorH });
+      }
       doors.push({
         id: item.id, gapFrom: gap.from, gapTo: gap.to,
         hinge: item.hingeAtEnd ? seg.to : seg.from,
         inward: item.swingOutward ? { x: -seg.inward.x || 0, y: -seg.inward.y || 0 } : seg.inward,
         length: item.length,
-        height: Math.min(WALL_H, DOOR_H),
+        height: doorH,
         selected: opts.selectedWallItemId === item.id,
       });
     }

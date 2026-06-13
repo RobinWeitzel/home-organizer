@@ -18,7 +18,7 @@ import {
   projectPath,
   projectRectPoints,
 } from '../IsoScene';
-import { usePlanPointer, type ShapeOp, type Tool, type View } from '../usePlanPointer';
+import { usePlanPointer, type EditLayer, type ShapeOp, type Tool, type View } from '../usePlanPointer';
 import { IsoCamera } from './IsoCamera';
 import { Floors } from './Floors';
 import { Walls } from './Walls';
@@ -39,6 +39,7 @@ export interface IsoViewProps {
   onPlaced?: () => void;
   browse?: boolean;
   rotation?: ViewRotation;
+  layer?: EditLayer;
 }
 
 export default function IsoView(props: IsoViewProps) {
@@ -100,6 +101,7 @@ export default function IsoView(props: IsoViewProps) {
     furnitureKind: props.furnitureKind, armedShapeOp,
     onShapeOpDone: props.onShapeOpDone, onOpenFurniture: props.onOpenFurniture,
     onMissWall: props.onMissWall, onPlaced: props.onPlaced, browse: props.browse,
+    layer: props.layer,
   });
 
   const proj = projection;
@@ -113,6 +115,10 @@ export default function IsoView(props: IsoViewProps) {
     ? wallItemSegment(selectedWallItem, rooms.find((r) => r.id === selectedWallItem.roomId)!.polygon)
     : null;
   const handleR = 9 / view.scale;
+  // labels are sized in world units, so they balloon as you zoom in — drop them
+  // past a point where they stop helping and just clutter the view
+  const showRoomLabels = view.scale <= 90;
+  const showFurnLabels = view.scale <= 150;
 
   const vw = props.size.w / view.scale;
   const vh = props.size.h / view.scale;
@@ -158,7 +164,7 @@ export default function IsoView(props: IsoViewProps) {
         {...handlers}
       >
         <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} fill="transparent" />
-        {rooms.map((r) => {
+        {showRoomLabels && rooms.map((r) => {
           const geo = roomGeo.get(r.id)!;
           const c = proj.project(geo.centroid.x, geo.centroid.y);
           const tiled = isTiledRoom(r.name);
@@ -191,7 +197,7 @@ export default function IsoView(props: IsoViewProps) {
           const dimmed = highlight && f.id !== highlight.id;
           return (
             <g key={`furn-${f.id}`} className={dimmed ? 'furn-dim' : undefined}>
-              {labelSize >= 0.13 && (
+              {showFurnLabels && labelSize >= 0.13 && (
                 <text
                   className="furniture-label"
                   x={top.x}

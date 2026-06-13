@@ -1,7 +1,7 @@
 // src/model/scene3d.test.ts
 import { describe, expect, it } from 'vitest';
 import { buildScene3D, furnitureFacing } from './scene3d';
-import { SILL_H, WALL_H, WALL_T } from './iso';
+import { DOOR_HEAD, SILL_H, WALL_H, WALL_T } from './iso';
 import type { Furniture, Room, WallItem } from './types';
 
 const room = (id: string, x0: number, y0: number, x1: number, y1: number): Room => ({
@@ -33,15 +33,22 @@ describe('buildScene3D', () => {
     const s = buildScene3D(rooms, [door], []);
     expect(s.doors.length).toBe(1);
     const d = s.doors[0];
-    expect(d.height).toBe(WALL_H);
+    // the leaf is kept below the wall top so a lintel can frame it
+    expect(d.height).toBeCloseTo(WALL_H - DOOR_HEAD, 10);
     expect([d.gapFrom, d.gapTo]).toEqual([{ x: 4, y: 1.5 }, { x: 4, y: 2.4 }]);
     // leaf swings into r1: inward is -x
     expect(d.inward).toEqual({ x: -1, y: 0 });
-    // the shared wall x=4 is split around the gap: no wall box covers y in (1.5, 2.4)
-    const onLine = s.wallBoxes.filter((b) => Math.abs(b.x + b.w / 2 - 4) < 1e-6);
+    // the shared wall x=4 is split around the gap at floor level: no floor-
+    // standing wall box covers y in (1.5, 2.4) — only the lintel above does
+    const onLine = s.wallBoxes.filter((b) => Math.abs(b.x + b.w / 2 - 4) < 1e-6 && b.z0 === 0);
     for (const b of onLine) {
       expect(b.y >= 2.4 - 1e-6 || b.y + b.h <= 1.5 + 1e-6).toBe(true);
     }
+    // a lintel fills the wall above the door, spanning the gap
+    const lintel = s.wallBoxes.find((b) => Math.abs(b.x + b.w / 2 - 4) < 1e-6 && b.z0 > 0);
+    expect(lintel).toBeTruthy();
+    expect(lintel!.z0).toBeCloseTo(WALL_H - DOOR_HEAD, 10);
+    expect(lintel!.z0 + lintel!.height).toBeCloseTo(WALL_H, 10);
   });
 
   it('stacks furniture whose footprint sits inside a larger piece', () => {

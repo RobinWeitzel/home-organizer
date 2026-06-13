@@ -54,6 +54,9 @@ export function buildFurnitureParts(
   D: number,
   H: number,
   seed: string,
+  /** the piece stands on top of another one — drop floor-standing supports
+   *  (e.g. a wash basin's pedestal) so it sits flush */
+  stacked = false,
 ): FurnPart[] {
   switch (kind) {
     case 'wardrobe': {
@@ -359,6 +362,15 @@ export function buildFurnitureParts(
     }
 
     case 'washbasin': {
+      if (stacked) {
+        // standing on a vanity/cabinet: a flush counter-top basin, no pedestal
+        const basinH = Math.min(0.12, H);
+        return [
+          { key: 'basin', size: [W, basinH, D], pos: [0, basinH / 2, 0], color: '#f2f1ee' },
+          { key: 'bowl', size: [Math.max(0.05, W - 0.12), 0.014, Math.max(0.05, D - 0.12)], pos: [0, basinH - 0.006, 0.01], color: '#dfe9ee', fixed: true },
+          { key: 'tap', size: [0.04, 0.05, 0.04], pos: [0, basinH + 0.018, -(D / 2 - 0.06)], color: '#c9ccd1', fixed: true },
+        ];
+      }
       return [
         { key: 'pedestal', size: [Math.max(0.06, W * 0.28), H - 0.12, Math.max(0.06, D * 0.32)], pos: [0, (H - 0.12) / 2, -(D * 0.05)], color: '#e8e7e4' },
         { key: 'basin', size: [W, 0.12, D], pos: [0, H - 0.06, 0], color: '#f2f1ee' },
@@ -368,13 +380,19 @@ export function buildFurnitureParts(
     }
 
     case 'toilet': {
-      const tankD = Math.min(0.16, D * 0.3);
-      const seatH = H * 0.55;
+      // tank against the back wall, a narrow pedestal foot, and a wider rounded
+      // seat/bowl in front — reads as a toilet rather than a solid block
+      const tankD = Math.min(0.18, D * 0.32);
+      const seatTop = Math.min(0.42, H * 0.56);
+      const bowlD = Math.max(0.12, D - tankD);
+      const bowlCz = D / 2 - bowlD / 2; // bowl back face meets the tank front
+      const tankBottom = Math.max(0, seatTop - 0.08);
       return [
-        { key: 'tank', size: [Math.max(0.08, W - 0.06), H - 0.06, tankD], pos: [0, (H - 0.06) / 2, -(D / 2 - tankD / 2)], color: '#f2f1ee' },
-        { key: 'lid', size: [Math.max(0.08, W - 0.04), 0.03, tankD + 0.02], pos: [0, H - 0.045, -(D / 2 - tankD / 2)], color: '#e8e7e4' },
-        { key: 'bowl', size: [Math.max(0.08, W - 0.08), seatH, Math.max(0.08, D - tankD - 0.06)], pos: [0, seatH / 2, tankD / 2 + 0.01], color: '#f2f1ee' },
-        { key: 'seat', size: [Math.max(0.08, W - 0.06), 0.025, Math.max(0.08, D - tankD - 0.04)], pos: [0, seatH + 0.0125, tankD / 2 + 0.01], color: '#fbfaf8' },
+        { key: 'tank', size: [Math.max(0.08, W - 0.06), H - tankBottom, tankD], pos: [0, tankBottom + (H - tankBottom) / 2, -(D / 2 - tankD / 2)], color: '#f2f1ee' },
+        { key: 'lid', size: [Math.max(0.08, W - 0.03), 0.03, tankD + 0.03], pos: [0, H - 0.015, -(D / 2 - tankD / 2)], color: '#e8e7e4' },
+        { key: 'foot', size: [Math.max(0.06, W * 0.4), seatTop, Math.max(0.06, bowlD * 0.55)], pos: [0, seatTop / 2, bowlCz], color: '#f2f1ee' },
+        { key: 'bowl', size: [Math.max(0.08, W - 0.05), 0.1, bowlD], pos: [0, seatTop - 0.05, bowlCz], color: '#f2f1ee' },
+        { key: 'seat', size: [Math.max(0.08, W - 0.04), 0.025, bowlD + 0.01], pos: [0, seatTop + 0.0125, bowlCz], color: '#fbfaf8' },
       ];
     }
 

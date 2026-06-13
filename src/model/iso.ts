@@ -8,6 +8,9 @@ export const ISO_Z = 0.38; // flattened height keeps interiors visible
 export const WALL_H = 1.1;
 export const WALL_T = 0.15;
 export const DOOR_H = 2.0;
+/** lintel band kept above a door leaf so it tucks under the wall instead of
+ *  poking through the top of the frame */
+export const DOOR_HEAD = 0.12;
 export const SILL_H = 0.6;
 export const WINDOW_TOP = 2.0;
 

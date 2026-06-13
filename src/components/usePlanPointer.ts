@@ -15,6 +15,8 @@ export interface View {
 
 export type Tool = 'select' | 'room' | 'door' | 'window' | 'opening' | 'furniture';
 export type ShapeOp = 'extend' | 'carve';
+/** which class of things the canvas lets you select & move while editing */
+export type EditLayer = 'structure' | 'furniture';
 
 const TAP_THRESHOLD_PX = 8;
 const HANDLE_HIT_PX = 18;
@@ -132,9 +134,14 @@ export function usePlanPointer(opts: {
   onPlaced?: () => void;
   /** browse mode: pan/zoom only, a tap on furniture opens its detail */
   browse?: boolean;
+  /** restrict selection/movement to one class of things (undefined = all) */
+  layer?: EditLayer;
 }) {
-  const { svgRef, setView, projection, tool, furnitureKind, armedShapeOp, onShapeOpDone, onOpenFurniture, onMissWall, onPlaced, browse } =
+  const { svgRef, setView, projection, tool, furnitureKind, armedShapeOp, onShapeOpDone, onOpenFurniture, onMissWall, onPlaced, browse, layer } =
     opts;
+  // structure layer: rooms/doors/windows/openings; furniture layer: furniture
+  const structureOK = layer !== 'furniture';
+  const furnitureOK = layer !== 'structure';
   const viewRef = useRef(opts.view);
   viewRef.current = opts.view;
 
@@ -142,6 +149,9 @@ export function usePlanPointer(opts: {
   const gesture = useRef<Gesture>({ type: 'idle' });
   const downC = useRef<Pt>({ x: 0, y: 0 });
   const moved = useRef(false);
+  // true when the pointer-down already moved the selection to a fresh piece, so
+  // the matching tap shouldn't also cycle the overlapping stack
+  const selectionChangedOnDown = useRef(false);
   const lastTap = useRef<{ time: number; furnitureId: string } | null>(null);
   const [ghost, setGhost] = useState<Rect | null>(null);
 
@@ -216,18 +226,31 @@ export function usePlanPointer(opts: {
     return null;
   };
 
+  /** every furniture piece under the point, smallest footprint first, so an
+   *  overlapping stack can be cycled through by repeated taps */
+  const furnitureCandidatesAt = (w: Pt): Furniture[] =>
+    floorFurnitureByHit()
+      .filter(({ f, lift }) => pointInLiftedRect(projection, w, f, lift))
+      .map(({ f }) => f);
+
   const hitTest = (w: Pt): Exclude<Selection, null> | null => {
     const { data } = useApp.getState();
-    for (const wi of floorWallItems()) {
-      const room = data.rooms.find((r) => r.id === wi.roomId)!;
-      const seg = wallItemSegment(wi, room.polygon);
-      if (seg && liftedHit(projection, w, (p) => distToSegment(p, seg.from, seg.to) <= 0.35))
-        return { kind: 'wallItem', id: wi.id };
+    if (structureOK) {
+      for (const wi of floorWallItems()) {
+        const room = data.rooms.find((r) => r.id === wi.roomId)!;
+        const seg = wallItemSegment(wi, room.polygon);
+        if (seg && liftedHit(projection, w, (p) => distToSegment(p, seg.from, seg.to) <= 0.35))
+          return { kind: 'wallItem', id: wi.id };
+      }
     }
-    const furn = floorFurnitureByHit().find(({ f, lift }) => pointInLiftedRect(projection, w, f, lift));
-    if (furn) return { kind: 'furniture', id: furn.f.id };
-    const room = [...floorRooms()].reverse().find((r) => pointInCells(w.x, w.y, polygonCells(r.polygon)));
-    if (room) return { kind: 'room', id: room.id };
+    if (furnitureOK) {
+      const furn = furnitureCandidatesAt(w)[0];
+      if (furn) return { kind: 'furniture', id: furn.id };
+    }
+    if (structureOK) {
+      const room = [...floorRooms()].reverse().find((r) => pointInCells(w.x, w.y, polygonCells(r.polygon)));
+      if (room) return { kind: 'room', id: room.id };
+    }
     return null;
   };
 
@@ -257,6 +280,7 @@ export function usePlanPointer(opts: {
     }
     if (pointers.current.size > 2) return;
     moved.current = false;
+    selectionChangedOnDown.current = false;
     downC.current = { x: e.clientX, y: e.clientY };
     const w = toWorld(downC.current);
     const store = useApp.getState();
@@ -274,52 +298,72 @@ export function usePlanPointer(opts: {
       return;
     }
     if (tool === 'select') {
-      const wallGesture = wallItemGestureAt(w);
-      if (wallGesture) {
-        gesture.current = wallGesture;
-        return;
+      if (structureOK) {
+        const wallGesture = wallItemGestureAt(w);
+        if (wallGesture) {
+          gesture.current = wallGesture;
+          return;
+        }
       }
-      const handle = furnitureHandleAt(w);
-      if (handle) {
-        const room = store.data.rooms.find((r) => r.id === handle.f.roomId);
-        gesture.current = {
-          type: 'resize-furniture',
-          furnitureId: handle.f.id,
-          anchor: handle.anchor,
-          cells: room ? polygonCells(room.polygon) : new Set(),
-        };
-        return;
+      if (furnitureOK) {
+        const handle = furnitureHandleAt(w);
+        if (handle) {
+          const room = store.data.rooms.find((r) => r.id === handle.f.roomId);
+          gesture.current = {
+            type: 'resize-furniture',
+            furnitureId: handle.f.id,
+            anchor: handle.anchor,
+            cells: room ? polygonCells(room.polygon) : new Set(),
+          };
+          return;
+        }
       }
-      const edgeHandle = roomEdgeHandleAt(w);
-      if (edgeHandle) {
-        gesture.current = {
-          type: 'edge-drag',
-          roomId: edgeHandle.room.id,
-          a: edgeHandle.a,
-          b: edgeHandle.b,
-          inward: edgeHandle.inward,
-          startW: w,
-          applied: 0,
-        };
-        return;
+      if (structureOK) {
+        const edgeHandle = roomEdgeHandleAt(w);
+        if (edgeHandle) {
+          gesture.current = {
+            type: 'edge-drag',
+            roomId: edgeHandle.room.id,
+            a: edgeHandle.a,
+            b: edgeHandle.b,
+            inward: edgeHandle.inward,
+            startW: w,
+            applied: 0,
+          };
+          return;
+        }
       }
-      const hit = hitTest(w);
-      if (hit?.kind === 'furniture') {
-        store.setSelected(hit);
-        const f = store.data.furniture.find((x) => x.id === hit.id)!;
-        const room = store.data.rooms.find((r) => r.id === f.roomId);
-        gesture.current = {
-          type: 'move-furniture',
-          furnitureId: hit.id,
-          startW: w,
-          cells: room ? polygonCells(room.polygon) : new Set(),
-        };
-        return;
+      if (furnitureOK) {
+        // pick the smallest piece under the point, but keep an already-selected
+        // piece if the tap lands on it (so you can drag it, and the matching tap
+        // can cycle the rest of the stack on pointer-up)
+        const cands = furnitureCandidatesAt(w);
+        if (cands.length) {
+          const sel = store.selected;
+          const onSel = sel?.kind === 'furniture' && cands.some((f) => f.id === sel.id);
+          const pickId = onSel ? sel!.id : cands[0].id;
+          if (!onSel) {
+            store.setSelected({ kind: 'furniture', id: pickId });
+            selectionChangedOnDown.current = true;
+          }
+          const f = store.data.furniture.find((x) => x.id === pickId)!;
+          const room = store.data.rooms.find((r) => r.id === f.roomId);
+          gesture.current = {
+            type: 'move-furniture',
+            furnitureId: pickId,
+            startW: w,
+            cells: room ? polygonCells(room.polygon) : new Set(),
+          };
+          return;
+        }
       }
-      if (hit?.kind === 'room') {
-        store.setSelected(hit);
-        gesture.current = { type: 'move-room', roomId: hit.id, startW: w };
-        return;
+      if (structureOK) {
+        const room = [...floorRooms()].reverse().find((r) => pointInCells(w.x, w.y, polygonCells(r.polygon)));
+        if (room) {
+          store.setSelected({ kind: 'room', id: room.id });
+          gesture.current = { type: 'move-room', roomId: room.id, startW: w };
+          return;
+        }
       }
       gesture.current = { type: 'pan', startView: viewRef.current, startC: downC.current };
       return;
@@ -499,17 +543,41 @@ export function usePlanPointer(opts: {
       return;
     }
     if (tool === 'select') {
-      const hit = hitTest(w);
-      store.setSelected(hit);
-      if (hit?.kind === 'furniture') {
-        const now = performance.now();
-        if (lastTap.current && lastTap.current.furnitureId === hit.id && now - lastTap.current.time < 350) {
-          onOpenFurniture(hit.id);
-          lastTap.current = null;
-        } else {
-          lastTap.current = { time: now, furnitureId: hit.id };
+      if (furnitureOK) {
+        const cands = furnitureCandidatesAt(w);
+        if (cands.length) {
+          const sel = store.selected;
+          const selIdx =
+            sel?.kind === 'furniture' ? cands.findIndex((f) => f.id === sel.id) : -1;
+          // tapping an already-selected piece again steps to the next one in the
+          // overlapping stack; a fresh tap keeps what pointer-down selected
+          const pickId =
+            selIdx >= 0 && !selectionChangedOnDown.current
+              ? cands[(selIdx + 1) % cands.length].id
+              : selIdx >= 0
+                ? sel!.id
+                : cands[0].id;
+          store.setSelected({ kind: 'furniture', id: pickId });
+          // double-tap-to-open stays available when there's no stack to cycle
+          if (cands.length === 1) {
+            const now = performance.now();
+            if (lastTap.current && lastTap.current.furnitureId === pickId && now - lastTap.current.time < 350) {
+              onOpenFurniture(pickId);
+              lastTap.current = null;
+            } else {
+              lastTap.current = { time: now, furnitureId: pickId };
+            }
+          } else {
+            lastTap.current = null;
+          }
+          return;
+        }
+        if (!structureOK) {
+          store.setSelected(null);
+          return;
         }
       }
+      store.setSelected(hitTest(w));
       return;
     }
     if (tool === 'door' || tool === 'window' || tool === 'opening') {

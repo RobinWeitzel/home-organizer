@@ -14,7 +14,7 @@ import IsoView from './iso3d/IsoView';
 import PlanCanvas from './PlanCanvas';
 import { usePrompt } from './PromptDialog';
 import PlanSearch from './PlanSearch';
-import type { ShapeOp, Tool, View } from './usePlanPointer';
+import type { EditLayer, ShapeOp, Tool, View } from './usePlanPointer';
 
 function UndoRedoFabs() {
   const canUndo = useApp((s) => s.history.length > 0);
@@ -67,6 +67,7 @@ export default function PlanView() {
     localStorage.setItem('planViewMode', next);
   };
   const [tool, setTool] = useState<Tool>('select');
+  const [editLayer, setEditLayer] = useState<EditLayer>('furniture');
   const [furnitureKind, setFurnitureKind] = useState<FurnitureKind>('shelf');
   const [armedShapeOp, setArmedShapeOp] = useState<ShapeOp | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -159,10 +160,26 @@ export default function PlanView() {
     }
   }, [editing]);
 
+  // a floor with no rooms yet starts on the structure layer — there's nothing
+  // to furnish until walls exist
+  useEffect(() => {
+    if (!editing) return;
+    const hasRooms = useApp.getState().data.rooms.some((r) => r.floorId === currentFloorId);
+    if (!hasRooms) setEditLayer('structure');
+  }, [editing, currentFloorId]);
+
   const stopEditing = () => {
     setTool('select');
     setArmedShapeOp(null);
     useApp.getState().setPlanEditing(false);
+  };
+
+  const switchLayer = (next: EditLayer) => {
+    if (next === editLayer) return;
+    setEditLayer(next);
+    setTool('select');
+    setArmedShapeOp(null);
+    useApp.getState().setSelected(null);
   };
 
   const selectedEntity = (() => {
@@ -253,6 +270,7 @@ export default function PlanView() {
     furnitureKind,
     armedShapeOp: editing ? armedShapeOp : null,
     browse: !editing,
+    layer: editLayer,
     onShapeOpDone: (ok: boolean) => {
       setArmedShapeOp(null);
       if (!ok) setToast("Couldn't change the shape — rooms must stay in one piece.");
@@ -281,6 +299,22 @@ export default function PlanView() {
             {currentFloor.name}
             <IconChevronDown size={15} />
           </button>
+        )}
+        {editing && !showSelbar && !armedShapeOp && !placing && (
+          <div className="layer-toggle" role="group" aria-label="Edit layer">
+            <button
+              className={editLayer === 'structure' ? 'active' : undefined}
+              onClick={() => switchLayer('structure')}
+            >
+              Structure
+            </button>
+            <button
+              className={editLayer === 'furniture' ? 'active' : undefined}
+              onClick={() => switchLayer('furniture')}
+            >
+              Furniture
+            </button>
+          </div>
         )}
         {hint && (
           <div className="hint-pill">
@@ -470,6 +504,7 @@ export default function PlanView() {
       {dialog}
       {addOpen && (
         <AddSheet
+          layer={editLayer}
           onClose={() => setAddOpen(false)}
           onPick={(t, kind) => {
             setAddOpen(false);

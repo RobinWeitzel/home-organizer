@@ -12,7 +12,7 @@ import { type Projection } from '../model/iso';
 import { useApp } from '../model/store';
 import type { FurnitureKind, Room, WallItem } from '../model/types';
 import { FurnitureDeco } from './furnitureIcons';
-import { usePlanPointer, type ShapeOp, type Tool, type View } from './usePlanPointer';
+import { usePlanPointer, type EditLayer, type ShapeOp, type Tool, type View } from './usePlanPointer';
 
 const WALL_W = 0.15;
 
@@ -151,6 +151,7 @@ interface PlanCanvasProps {
   onMissWall: () => void;
   onPlaced?: () => void;
   browse?: boolean;
+  layer?: EditLayer;
 }
 
 export default function PlanCanvas({
@@ -166,6 +167,7 @@ export default function PlanCanvas({
   onMissWall,
   onPlaced,
   browse,
+  layer,
 }: PlanCanvasProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const data = useApp((s) => s.data);
@@ -187,6 +189,7 @@ export default function PlanCanvas({
     onMissWall,
     onPlaced,
     browse,
+    layer,
   });
 
   const rooms = useMemo(
